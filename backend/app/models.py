@@ -1,0 +1,37 @@
+from typing import Optional, List
+from sqlmodel import Field, SQLModel
+from datetime import datetime
+
+# Shared Properties
+class DatasetBase(SQLModel):
+    filename: str
+    file_path: str
+    file_size: int
+    total_rows: Optional[int] = None
+    total_columns: Optional[int] = None
+    uploaded_at: datetime = Field(default_factory=datetime.utcnow)
+
+# Database Table
+class Dataset(DatasetBase, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    
+# API Response
+class DatasetRead(DatasetBase):
+    id: int
+
+# Visualization Model (For saving charts later)
+class Visualization(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    title: str
+    chart_type: str
+    config_json: str # JSON string of axis/cols
+    dataset_id: int = Field(foreign_key="dataset.id")
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+# Analysis Log (For tracking operations)
+class AnalysisLog(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    dataset_id: int = Field(foreign_key="dataset.id")
+    operation: str # e.g., "Clean Missing"
+    details: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
