@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth-context"
 import { useState } from "react"
 import Link from "next/link"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
+import { LanguageSwitcher } from "@/components/ui/language-switcher"
 
 export function Header() {
     const { user, logout, isAdmin } = useAuth()
@@ -47,6 +48,9 @@ export function Header() {
                     >
                         <Search className="w-5 h-5" />
                     </Button>
+
+                    {/* Language Switcher */}
+                    <LanguageSwitcher />
 
                     {/* Theme Toggle */}
                     <ThemeToggle />

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useAuth } from "@/lib/auth-context"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { useTranslation } from "@/lib/i18n/language-context"
 import {
     TrendingUp,
     TrendingDown,
@@ -67,91 +68,91 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 
-// Comprehensive Demo Data
-const demoTrendData = [
-    { month: "Jan", revenue: 320000, profit: 89600, orders: 1200, target: 300000 },
-    { month: "Feb", revenue: 280000, profit: 78400, orders: 1050, target: 310000 },
-    { month: "Mar", revenue: 350000, profit: 98000, orders: 1380, target: 320000 },
-    { month: "Apr", revenue: 310000, profit: 86800, orders: 1250, target: 330000 },
-    { month: "May", revenue: 340000, profit: 95200, orders: 1320, target: 340000 },
-    { month: "Jun", revenue: 380000, profit: 106400, orders: 1450, target: 350000 },
-    { month: "Jul", revenue: 420000, profit: 117600, orders: 1580, target: 360000 },
-    { month: "Aug", revenue: 395000, profit: 110600, orders: 1520, target: 370000 },
-]
-
-const demoForecastData = [
-    { month: "Sep", revenue: 430000, forecast: true },
-    { month: "Oct", revenue: 455000, forecast: true },
-    { month: "Nov", revenue: 490000, forecast: true },
-    { month: "Dec", revenue: 520000, forecast: true },
-]
-
-const demoCategoryData = [
-    { name: "Electronics", value: 485000, percentage: 35, growth: 12 },
-    { name: "Clothing", value: 346000, percentage: 25, growth: 8 },
-    { name: "Food & Beverage", value: 277000, percentage: 20, growth: -3 },
-    { name: "Home & Garden", value: 166000, percentage: 12, growth: 15 },
-    { name: "Sports", value: 111000, percentage: 8, growth: 22 },
-]
-
-const demoTopPerformers = [
-    { name: "Laptop Pro X", value: 125000, growth: 23, units: 250 },
-    { name: "Wireless Earbuds", value: 89000, growth: 45, units: 1780 },
-    { name: "Smart Watch S3", value: 67000, growth: 12, units: 335 },
-    { name: "Gaming Console", value: 54000, growth: -5, units: 108 },
-    { name: "Tablet Ultra", value: 48000, growth: 8, units: 160 },
-]
-
-const demoAnomalies = [
-    { date: "Aug 15", metric: "Revenue", expected: 15000, actual: 8500, deviation: -43, severity: "high" },
-    { date: "Aug 22", metric: "Orders", expected: 52, actual: 89, deviation: 71, severity: "medium" },
-    { date: "Aug 28", metric: "Avg Order Value", expected: 245, actual: 312, deviation: 27, severity: "low" },
-]
-
-const demoRegionalData = [
-    { region: "North America", revenue: 580000, orders: 2100, avgOrder: 276 },
-    { region: "Europe", revenue: 420000, orders: 1650, avgOrder: 255 },
-    { region: "Asia Pacific", revenue: 310000, orders: 1800, avgOrder: 172 },
-    { region: "Latin America", revenue: 75000, orders: 420, avgOrder: 179 },
-]
-
-const demoDataQuality = {
-    completeness: 94.2,
-    accuracy: 98.7,
-    consistency: 91.5,
-    timeliness: 89.3,
-    totalRecords: 15420,
-    missingValues: 892,
-    duplicates: 45,
-    outliers: 127
-}
-
-// AI-Generated Demo Insights
-const demoAIInsights = [
-    { type: "positive", text: "Revenue increased by 23% compared to Q2, exceeding the quarterly target by $45,000. This growth is primarily driven by the Electronics category which saw a 31% surge.", priority: 1 },
-    { type: "positive", text: "Customer retention rate improved to 78.4%, up from 71.2% last quarter. Repeat purchase frequency increased by 15%.", priority: 2 },
-    { type: "warning", text: "Food & Beverage category showing declining trend (-3% MoM). Consider promotional activities or product mix optimization.", priority: 1 },
-    { type: "warning", text: "Inventory turnover for Gaming Console has slowed. Current stock levels suggest 45 days of inventory vs. optimal 30 days.", priority: 2 },
-    { type: "info", text: "Weekend sales account for 42% of weekly revenue despite being only 29% of operating days. Consider extending weekend promotions.", priority: 3 },
-    { type: "positive", text: "Mobile orders now represent 62% of total orders, up from 48% YoY. Mobile conversion rate improved by 28%.", priority: 2 },
-    { type: "info", text: "Average order value peaks between 2-4 PM (avg $312 vs. daily avg $267). This pattern is consistent across all regions.", priority: 3 },
-    { type: "warning", text: "Customer acquisition cost increased by 8% this month. Consider optimizing ad spend allocation across channels.", priority: 2 },
-]
-
-const demoRecommendations = [
-    { category: "Growth", title: "Expand Electronics Inventory", description: "Based on demand patterns, increase electronics stock by 20% for Q4 to capture holiday demand.", impact: "High", effort: "Medium" },
-    { category: "Optimization", title: "Reduce Food & Beverage SKUs", description: "Bottom 15% of F&B products contribute only 2% to revenue. Consider discontinuing underperformers.", impact: "Medium", effort: "Low" },
-    { category: "Marketing", title: "Launch Weekend Flash Sales", description: "Capitalize on weekend traffic by implementing flash sales. Predicted 18% revenue increase.", impact: "High", effort: "Low" },
-    { category: "Operations", title: "Optimize Shipping Routes", description: "Analysis shows 12% delivery cost savings possible by consolidating APAC shipments.", impact: "Medium", effort: "High" },
-]
-
 export default function BIAnalyticsPage() {
     const { user, isAdmin } = useAuth()
+    const { t } = useTranslation()
     const [datasets, setDatasets] = useState<any[]>([])
     const [selectedDatasetId, setSelectedDatasetId] = useState<number | null>(null)
     const [stats, setStats] = useState<any>(null)
     const [loading, setLoading] = useState(true)
-    const [activeTab, setActiveTab] = useState<'overview' | 'trends' | 'insights'>('overview')
+
+    // Demo Data defined inside to potentially use translations later if needed, 
+    // or just kept here for simplicity. 
+    const demoTrendData = [
+        { month: "Jan", revenue: 320000, profit: 89600, orders: 1200, target: 300000 },
+        { month: "Feb", revenue: 280000, profit: 78400, orders: 1050, target: 310000 },
+        { month: "Mar", revenue: 350000, profit: 98000, orders: 1380, target: 320000 },
+        { month: "Apr", revenue: 310000, profit: 86800, orders: 1250, target: 330000 },
+        { month: "May", revenue: 340000, profit: 95200, orders: 1320, target: 340000 },
+        { month: "Jun", revenue: 380000, profit: 106400, orders: 1450, target: 350000 },
+        { month: "Jul", revenue: 420000, profit: 117600, orders: 1580, target: 360000 },
+        { month: "Aug", revenue: 395000, profit: 110600, orders: 1520, target: 370000 },
+    ]
+
+    const demoForecastData = [
+        { month: "Sep", revenue: 430000, forecast: true },
+        { month: "Oct", revenue: 455000, forecast: true },
+        { month: "Nov", revenue: 490000, forecast: true },
+        { month: "Dec", revenue: 520000, forecast: true },
+    ]
+
+    const demoCategoryData = [
+        { name: "Electronics", value: 485000, percentage: 35, growth: 12 },
+        { name: "Clothing", value: 346000, percentage: 25, growth: 8 },
+        { name: "Food & Beverage", value: 277000, percentage: 20, growth: -3 },
+        { name: "Home & Garden", value: 166000, percentage: 12, growth: 15 },
+        { name: "Sports", value: 111000, percentage: 8, growth: 22 },
+    ]
+
+    const demoTopPerformers = [
+        { name: "Laptop Pro X", value: 125000, growth: 23, units: 250 },
+        { name: "Wireless Earbuds", value: 89000, growth: 45, units: 1780 },
+        { name: "Smart Watch S3", value: 67000, growth: 12, units: 335 },
+        { name: "Gaming Console", value: 54000, growth: -5, units: 108 },
+        { name: "Tablet Ultra", value: 48000, growth: 8, units: 160 },
+    ]
+
+    const demoAnomalies = [
+        { date: "Aug 15", metric: t.bi.totalRevenue, expected: 15000, actual: 8500, deviation: -43, severity: "high" },
+        { date: "Aug 22", metric: t.bi.totalOrders, expected: 52, actual: 89, deviation: 71, severity: "medium" },
+        { date: "Aug 28", metric: t.bi.avgOrderValue, expected: 245, actual: 312, deviation: 27, severity: "low" },
+    ]
+
+    const demoRegionalData = [
+        { region: "North America", revenue: 580000, orders: 2100, avgOrder: 276 },
+        { region: "Europe", revenue: 420000, orders: 1650, avgOrder: 255 },
+        { region: "Asia Pacific", revenue: 310000, orders: 1800, avgOrder: 172 },
+        { region: "Latin America", revenue: 75000, orders: 420, avgOrder: 179 },
+    ]
+
+    const demoDataQuality = {
+        completeness: 94.2,
+        accuracy: 98.7,
+        consistency: 91.5,
+        timeliness: 89.3,
+        totalRecords: 15420,
+        missingValues: 892,
+        duplicates: 45,
+        outliers: 127
+    }
+
+    const demoAIInsights = [
+        { type: "positive", text: "Revenue increased by 23% compared to Q2, exceeding the quarterly target by $45,000. This growth is primarily driven by the Electronics category which saw a 31% surge.", priority: 1 },
+        { type: "positive", text: "Customer retention rate improved to 78.4%, up from 71.2% last quarter. Repeat purchase frequency increased by 15%.", priority: 2 },
+        { type: "warning", text: "Food & Beverage category showing declining trend (-3% MoM). Consider promotional activities or product mix optimization.", priority: 1 },
+        { type: "warning", text: "Inventory turnover for Gaming Console has slowed. Current stock levels suggest 45 days of inventory vs. optimal 30 days.", priority: 2 },
+        { type: "info", text: "Weekend sales account for 42% of weekly revenue despite being only 29% of operating days. Consider extending weekend promotions.", priority: 3 },
+        { type: "positive", text: "Mobile orders now represent 62% of total orders, up from 48% YoY. Mobile conversion rate improved by 28%.", priority: 2 },
+        { type: "info", text: "Average order value peaks between 2-4 PM (avg $312 vs. daily avg $267). This pattern is consistent across all regions.", priority: 3 },
+        { type: "warning", text: "Customer acquisition cost increased by 8% this month. Consider optimizing ad spend allocation across channels.", priority: 2 },
+    ]
+
+    const demoRecommendations = [
+        { category: "Growth", title: "Expand Electronics Inventory", description: "Based on demand patterns, increase electronics stock by 20% for Q4 to capture holiday demand.", impact: "High", effort: "Medium" },
+        { category: "Optimization", title: "Reduce Food & Beverage SKUs", description: "Bottom 15% of F&B products contribute only 2% to revenue. Consider discontinuing underperformers.", impact: "Medium", effort: "Low" },
+        { category: "Marketing", title: "Launch Weekend Flash Sales", description: "Capitalize on weekend traffic by implementing flash sales. Predicted 18% revenue increase.", impact: "High", effort: "Low" },
+        { category: "Operations", title: "Optimize Shipping Routes", description: "Analysis shows 12% delivery cost savings possible by consolidating APAC shipments.", impact: "Medium", effort: "High" },
+    ]
 
     useEffect(() => {
         const loadData = async () => {
@@ -198,7 +199,7 @@ export default function BIAnalyticsPage() {
         await fetchStats(id)
     }
 
-    // Calculate metrics from real data or use demo
+    // Calculate metrics
     const totalRevenue = stats?.smart_analysis?.total_sales || 1385000
     const avgOrderValue = stats?.smart_analysis?.average_sales || 267
     const totalRows = stats?.total_rows || 15420
@@ -212,7 +213,7 @@ export default function BIAnalyticsPage() {
                     <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center animate-pulse">
                         <Brain className="w-6 h-6 text-primary" />
                     </div>
-                    <p className="text-muted-foreground font-medium">Analyzing Business Intelligence...</p>
+                    <p className="text-muted-foreground font-medium">{t.common.loading}</p>
                 </div>
             </div>
         )
@@ -227,18 +228,18 @@ export default function BIAnalyticsPage() {
                         <div className="p-2 rounded-xl bg-gradient-to-br from-primary/20 to-purple-500/20">
                             <Brain className="w-6 h-6 text-primary" />
                         </div>
-                        <h1 className="text-2xl font-bold text-foreground">Business Intelligence</h1>
-                        <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">AI Powered</span>
+                        <h1 className="text-2xl font-bold text-foreground">{t.bi.title}</h1>
+                        <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">{t.bi.aiPowered}</span>
                     </div>
                     <p className="text-muted-foreground">
-                        Comprehensive analytics, AI insights, and actionable recommendations
+                        {t.bi.subtitle}
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
                     {datasets.length > 1 && (
                         <Select value={selectedDatasetId ? String(selectedDatasetId) : ""} onValueChange={handleDatasetChange}>
                             <SelectTrigger className="w-[200px]">
-                                <SelectValue placeholder="Select Dataset" />
+                                <SelectValue placeholder={t.overview.selectDataset} />
                             </SelectTrigger>
                             <SelectContent>
                                 {datasets.map((ds) => (
@@ -248,11 +249,11 @@ export default function BIAnalyticsPage() {
                         </Select>
                     )}
                     <Button variant="outline" size="sm">
-                        <Download className="w-4 h-4 mr-2" /> Export Report
+                        <Download className="w-4 h-4 mr-2" /> {t.bi.exportReport}
                     </Button>
                     <Link href="/insights">
                         <Button className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90">
-                            <Sparkles className="w-4 h-4 mr-2" /> Ask AI
+                            <Sparkles className="w-4 h-4 mr-2" /> {t.home.askAI}
                         </Button>
                     </Link>
                 </div>
@@ -262,9 +263,9 @@ export default function BIAnalyticsPage() {
             <div className="premium-card p-6 bg-gradient-to-br from-slate-900/50 via-background to-slate-900/30 border-primary/20">
                 <div className="flex items-center gap-2 mb-4">
                     <FileText className="w-5 h-5 text-primary" />
-                    <h2 className="text-lg font-semibold text-foreground">Executive Summary</h2>
+                    <h2 className="text-lg font-semibold text-foreground">{t.bi.executiveSummary}</h2>
                     <span className="ml-auto text-xs text-muted-foreground flex items-center gap-1">
-                        <RefreshCw className="w-3 h-3" /> Updated 2 hours ago
+                        <RefreshCw className="w-3 h-3" /> {t.bi.updated} 2 hours ago
                     </span>
                 </div>
 
@@ -285,19 +286,19 @@ export default function BIAnalyticsPage() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-border/50">
                     <div className="text-center">
                         <p className="text-2xl font-bold text-green-500">+23%</p>
-                        <p className="text-xs text-muted-foreground">Revenue Growth</p>
+                        <p className="text-xs text-muted-foreground">{t.bi.revenueGrowth}</p>
                     </div>
                     <div className="text-center">
                         <p className="text-2xl font-bold text-blue-500">78.4%</p>
-                        <p className="text-xs text-muted-foreground">Retention Rate</p>
+                        <p className="text-xs text-muted-foreground">{t.bi.retentionRate}</p>
                     </div>
                     <div className="text-center">
                         <p className="text-2xl font-bold text-purple-500">62%</p>
-                        <p className="text-xs text-muted-foreground">Mobile Orders</p>
+                        <p className="text-xs text-muted-foreground">{t.bi.mobileOrders}</p>
                     </div>
                     <div className="text-center">
                         <p className="text-2xl font-bold text-orange-500">$267</p>
-                        <p className="text-xs text-muted-foreground">Avg Order Value</p>
+                        <p className="text-xs text-muted-foreground">{t.bi.avgOrderValue}</p>
                     </div>
                 </div>
             </div>
@@ -315,7 +316,7 @@ export default function BIAnalyticsPage() {
                         </div>
                     </div>
                     <p className="text-2xl font-bold text-foreground">${(totalRevenue / 1000).toFixed(0)}K</p>
-                    <p className="text-sm text-muted-foreground">Total Revenue</p>
+                    <p className="text-sm text-muted-foreground">{t.bi.totalRevenue}</p>
                     <p className="text-xs text-muted-foreground/70 mt-1">vs. $1.23M last period</p>
                 </div>
 
@@ -330,7 +331,7 @@ export default function BIAnalyticsPage() {
                         </div>
                     </div>
                     <p className="text-2xl font-bold text-foreground">{totalRows.toLocaleString()}</p>
-                    <p className="text-sm text-muted-foreground">Total Orders</p>
+                    <p className="text-sm text-muted-foreground">{t.bi.totalOrders}</p>
                     <p className="text-xs text-muted-foreground/70 mt-1">vs. 14,250 last period</p>
                 </div>
 
@@ -345,7 +346,7 @@ export default function BIAnalyticsPage() {
                         </div>
                     </div>
                     <p className="text-2xl font-bold text-foreground">${avgOrderValue.toFixed(0)}</p>
-                    <p className="text-sm text-muted-foreground">Avg Order Value</p>
+                    <p className="text-sm text-muted-foreground">{t.bi.avgOrderValue}</p>
                     <p className="text-xs text-muted-foreground/70 mt-1">vs. $257 last period</p>
                 </div>
 
@@ -360,7 +361,7 @@ export default function BIAnalyticsPage() {
                         </div>
                     </div>
                     <p className="text-2xl font-bold text-foreground">78.4%</p>
-                    <p className="text-sm text-muted-foreground">Customer Retention</p>
+                    <p className="text-sm text-muted-foreground">{t.bi.customerRetention}</p>
                     <p className="text-xs text-muted-foreground/70 mt-1">vs. 71.2% last period</p>
                 </div>
             </div>
@@ -371,13 +372,13 @@ export default function BIAnalyticsPage() {
                 <div className="lg:col-span-2 premium-card p-6">
                     <div className="flex items-center justify-between mb-6">
                         <div>
-                            <h3 className="font-semibold text-foreground">Revenue Trend & Forecast</h3>
-                            <p className="text-sm text-muted-foreground">Actual vs. target with Q4 projections</p>
+                            <h3 className="font-semibold text-foreground">{t.bi.revenueTrend}</h3>
+                            <p className="text-sm text-muted-foreground">{t.bi.actualVsTarget}</p>
                         </div>
                         <div className="flex items-center gap-4 text-xs">
                             <div className="flex items-center gap-1.5">
                                 <div className="w-3 h-3 rounded-full bg-primary" />
-                                <span className="text-muted-foreground">Actual</span>
+                                <span className="text-muted-foreground">{t.bi.actual}</span>
                             </div>
                             <div className="flex items-center gap-1.5">
                                 <div className="w-3 h-3 rounded-full bg-orange-500" />
@@ -431,8 +432,8 @@ export default function BIAnalyticsPage() {
                 <div className="premium-card p-6">
                     <div className="flex items-center justify-between mb-4">
                         <div>
-                            <h3 className="font-semibold text-foreground">Category Mix</h3>
-                            <p className="text-sm text-muted-foreground">Revenue distribution</p>
+                            <h3 className="font-semibold text-foreground">{t.bi.categoryMix}</h3>
+                            <p className="text-sm text-muted-foreground">{t.bi.revenueDist}</p>
                         </div>
                     </div>
                     <div className="h-[180px]">
@@ -480,8 +481,8 @@ export default function BIAnalyticsPage() {
                 <div className="premium-card p-6">
                     <div className="flex items-center justify-between mb-6">
                         <div>
-                            <h3 className="font-semibold text-foreground">Top Performers</h3>
-                            <p className="text-sm text-muted-foreground">Best selling products by revenue</p>
+                            <h3 className="font-semibold text-foreground">{t.bi.topPerformers}</h3>
+                            <p className="text-sm text-muted-foreground">{t.bi.bestSelling}</p>
                         </div>
                     </div>
                     <div className="space-y-4">
@@ -516,8 +517,8 @@ export default function BIAnalyticsPage() {
                 <div className="premium-card p-6">
                     <div className="flex items-center justify-between mb-6">
                         <div>
-                            <h3 className="font-semibold text-foreground">Regional Breakdown</h3>
-                            <p className="text-sm text-muted-foreground">Performance by geography</p>
+                            <h3 className="font-semibold text-foreground">{t.bi.regionalBreakdown}</h3>
+                            <p className="text-sm text-muted-foreground">{t.bi.byGeography}</p>
                         </div>
                     </div>
                     <div className="space-y-4">
@@ -529,11 +530,11 @@ export default function BIAnalyticsPage() {
                                 </div>
                                 <div className="grid grid-cols-2 gap-4 text-sm">
                                     <div>
-                                        <p className="text-muted-foreground">Orders</p>
+                                        <p className="text-muted-foreground">{t.bi.totalOrders}</p>
                                         <p className="font-medium text-foreground">{region.orders.toLocaleString()}</p>
                                     </div>
                                     <div>
-                                        <p className="text-muted-foreground">Avg Order</p>
+                                        <p className="text-muted-foreground">{t.bi.avgOrderValue}</p>
                                         <p className="font-medium text-foreground">${region.avgOrder}</p>
                                     </div>
                                 </div>
@@ -547,9 +548,9 @@ export default function BIAnalyticsPage() {
             <div className="premium-card p-6">
                 <div className="flex items-center gap-2 mb-6">
                     <AlertTriangle className="w-5 h-5 text-orange-500" />
-                    <h3 className="font-semibold text-foreground">Anomaly Detection</h3>
+                    <h3 className="font-semibold text-foreground">{t.bi.anomalyDetection}</h3>
                     <span className="ml-auto px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-500 text-xs font-medium">
-                        {demoAnomalies.length} detected
+                        {demoAnomalies.length} {t.bi.detected}
                     </span>
                 </div>
                 <div className="grid md:grid-cols-3 gap-4">
@@ -569,11 +570,11 @@ export default function BIAnalyticsPage() {
                             </div>
                             <p className="text-xs text-muted-foreground mb-2">{anomaly.date}</p>
                             <div className="flex items-center justify-between text-sm">
-                                <span className="text-muted-foreground">Expected: ${anomaly.expected.toLocaleString()}</span>
-                                <span className="text-muted-foreground">Actual: ${anomaly.actual.toLocaleString()}</span>
+                                <span className="text-muted-foreground">{t.bi.expected}: ${anomaly.expected.toLocaleString()}</span>
+                                <span className="text-muted-foreground">{t.bi.actual}: ${anomaly.actual.toLocaleString()}</span>
                             </div>
                             <div className={`mt-2 text-sm font-medium ${anomaly.deviation < 0 ? 'text-red-500' : 'text-green-500'}`}>
-                                {anomaly.deviation > 0 ? '+' : ''}{anomaly.deviation}% deviation
+                                {anomaly.deviation > 0 ? '+' : ''}{anomaly.deviation}% {t.bi.deviation}
                             </div>
                         </div>
                     ))}
@@ -584,14 +585,14 @@ export default function BIAnalyticsPage() {
             <div className="premium-card p-6">
                 <div className="flex items-center gap-2 mb-6">
                     <Shield className="w-5 h-5 text-blue-500" />
-                    <h3 className="font-semibold text-foreground">Data Quality Metrics</h3>
+                    <h3 className="font-semibold text-foreground">{t.bi.dataQuality}</h3>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                     {[
-                        { label: 'Completeness', value: demoDataQuality.completeness, color: 'green' },
-                        { label: 'Accuracy', value: demoDataQuality.accuracy, color: 'blue' },
-                        { label: 'Consistency', value: demoDataQuality.consistency, color: 'purple' },
-                        { label: 'Timeliness', value: demoDataQuality.timeliness, color: 'orange' },
+                        { label: t.bi.completeness, value: demoDataQuality.completeness, color: 'green' },
+                        { label: t.bi.accuracy, value: demoDataQuality.accuracy, color: 'blue' },
+                        { label: t.bi.consistency, value: demoDataQuality.consistency, color: 'purple' },
+                        { label: t.bi.timeliness, value: demoDataQuality.timeliness, color: 'orange' },
                     ].map((metric, i) => (
                         <div key={i} className="text-center">
                             <div className="relative w-20 h-20 mx-auto mb-2">
@@ -616,19 +617,19 @@ export default function BIAnalyticsPage() {
                 <div className="grid grid-cols-4 gap-4 mt-6 pt-6 border-t border-border/50 text-center">
                     <div>
                         <p className="text-lg font-bold text-foreground">{demoDataQuality.totalRecords.toLocaleString()}</p>
-                        <p className="text-xs text-muted-foreground">Total Records</p>
+                        <p className="text-xs text-muted-foreground">{t.bi.totalRecords}</p>
                     </div>
                     <div>
                         <p className="text-lg font-bold text-orange-500">{demoDataQuality.missingValues}</p>
-                        <p className="text-xs text-muted-foreground">Missing Values</p>
+                        <p className="text-xs text-muted-foreground">{t.bi.missingValues}</p>
                     </div>
                     <div>
                         <p className="text-lg font-bold text-yellow-500">{demoDataQuality.duplicates}</p>
-                        <p className="text-xs text-muted-foreground">Duplicates</p>
+                        <p className="text-xs text-muted-foreground">{t.bi.duplicates}</p>
                     </div>
                     <div>
                         <p className="text-lg font-bold text-red-500">{demoDataQuality.outliers}</p>
-                        <p className="text-xs text-muted-foreground">Outliers</p>
+                        <p className="text-xs text-muted-foreground">{t.bi.outliers}</p>
                     </div>
                 </div>
             </div>
@@ -638,14 +639,14 @@ export default function BIAnalyticsPage() {
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-2">
                         <Sparkles className="w-5 h-5 text-primary" />
-                        <h3 className="font-semibold text-foreground">AI-Generated Insights</h3>
+                        <h3 className="font-semibold text-foreground">{t.bi.generatedInsights}</h3>
                         <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
                             {demoAIInsights.length} insights
                         </span>
                     </div>
                     <Link href="/insights">
                         <Button variant="ghost" size="sm" className="text-primary">
-                            Explore More <ArrowRight className="w-4 h-4 ml-1" />
+                            {t.bi.exploreMore} <ArrowRight className="w-4 h-4 ml-1" />
                         </Button>
                     </Link>
                 </div>
@@ -675,7 +676,7 @@ export default function BIAnalyticsPage() {
             <div className="premium-card p-6">
                 <div className="flex items-center gap-2 mb-6">
                     <Lightbulb className="w-5 h-5 text-amber-500" />
-                    <h3 className="font-semibold text-foreground">AI Recommendations</h3>
+                    <h3 className="font-semibold text-foreground">{t.bi.recommendations}</h3>
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                     {demoRecommendations.map((rec, i) => (
@@ -691,13 +692,13 @@ export default function BIAnalyticsPage() {
                             <p className="text-sm text-muted-foreground mb-3">{rec.description}</p>
                             <div className="flex items-center gap-4 text-xs">
                                 <div className="flex items-center gap-1">
-                                    <span className="text-muted-foreground">Impact:</span>
+                                    <span className="text-muted-foreground">{t.bi.impact}:</span>
                                     <span className={`font-medium ${rec.impact === 'High' ? 'text-green-500' : rec.impact === 'Medium' ? 'text-yellow-500' : 'text-gray-500'}`}>
                                         {rec.impact}
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-1">
-                                    <span className="text-muted-foreground">Effort:</span>
+                                    <span className="text-muted-foreground">{t.bi.effort}:</span>
                                     <span className={`font-medium ${rec.effort === 'Low' ? 'text-green-500' : rec.effort === 'Medium' ? 'text-yellow-500' : 'text-red-500'}`}>
                                         {rec.effort}
                                     </span>

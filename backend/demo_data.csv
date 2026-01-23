@@ -1,0 +1,50 @@
+date,product,category,quantity,price,total_sales,region,customer_type
+2024-01-05,Laptop Pro X,Electronics,12,1299.99,15599.88,North America,Business
+2024-01-05,Wireless Earbuds,Electronics,45,89.99,4049.55,North America,Consumer
+2024-01-06,Smart Watch S3,Electronics,23,299.99,6899.77,Europe,Consumer
+2024-01-07,Gaming Console,Electronics,8,499.99,3999.92,North America,Consumer
+2024-01-08,Tablet Ultra,Electronics,15,649.99,9749.85,Asia Pacific,Business
+2024-01-10,Running Shoes Pro,Sports,32,159.99,5119.68,Europe,Consumer
+2024-01-10,Fitness Tracker,Sports,28,79.99,2239.72,North America,Consumer
+2024-01-11,Premium Coffee Beans,Food & Beverage,85,24.99,2124.15,North America,Consumer
+2024-01-12,Organic Tea Set,Food & Beverage,42,34.99,1469.58,Europe,Consumer
+2024-01-13,Winter Jacket,Clothing,18,189.99,3419.82,North America,Consumer
+2024-01-14,Designer Sneakers,Clothing,25,229.99,5749.75,Europe,Consumer
+2024-01-15,Garden Tool Set,Home & Garden,14,89.99,1259.86,North America,Consumer
+2024-01-16,Smart Thermostat,Home & Garden,22,179.99,3959.78,North America,Business
+2024-01-18,Laptop Pro X,Electronics,18,1299.99,23399.82,Europe,Business
+2024-01-19,Wireless Earbuds,Electronics,62,89.99,5579.38,Asia Pacific,Consumer
+2024-01-20,Smart Watch S3,Electronics,35,299.99,10499.65,North America,Consumer
+2024-01-22,Premium Headphones,Electronics,28,249.99,6999.72,Europe,Consumer
+2024-01-23,Yoga Mat Pro,Sports,45,49.99,2249.55,North America,Consumer
+2024-01-24,Basketball,Sports,38,34.99,1329.62,North America,Consumer
+2024-01-25,Protein Powder,Food & Beverage,65,44.99,2924.35,North America,Consumer
+2024-01-26,Vitamin Pack,Food & Beverage,72,29.99,2159.28,Europe,Consumer
+2024-01-28,Casual T-Shirt,Clothing,55,29.99,1649.45,North America,Consumer
+2024-01-29,Denim Jeans,Clothing,32,79.99,2559.68,Europe,Consumer
+2024-01-30,Indoor Plant Set,Home & Garden,19,59.99,1139.81,North America,Consumer
+2024-02-01,Laptop Pro X,Electronics,22,1299.99,28599.78,North America,Business
+2024-02-02,Wireless Earbuds,Electronics,78,89.99,7019.22,Europe,Consumer
+2024-02-03,Gaming Console,Electronics,15,499.99,7499.85,North America,Consumer
+2024-02-05,Smart Watch S3,Electronics,42,299.99,12599.58,Asia Pacific,Consumer
+2024-02-06,Tablet Ultra,Electronics,25,649.99,16249.75,Europe,Business
+2024-02-08,Running Shoes Pro,Sports,48,159.99,7679.52,North America,Consumer
+2024-02-10,Tennis Racket,Sports,22,129.99,2859.78,Europe,Consumer
+2024-02-12,Green Tea Premium,Food & Beverage,95,19.99,1899.05,Asia Pacific,Consumer
+2024-02-14,Chocolate Box,Food & Beverage,120,34.99,4198.80,North America,Consumer
+2024-02-15,Silk Blouse,Clothing,28,119.99,3359.72,Europe,Consumer
+2024-02-16,Wool Sweater,Clothing,35,89.99,3149.65,North America,Consumer
+2024-02-18,Outdoor Furniture,Home & Garden,8,399.99,3199.92,North America,Business
+2024-02-20,Smart Lighting Kit,Home & Garden,32,129.99,4159.68,Europe,Consumer
+2024-02-22,Laptop Pro X,Electronics,28,1299.99,36399.72,Europe,Business
+2024-02-24,Premium Headphones,Electronics,45,249.99,11249.55,North America,Consumer
+2024-02-26,Smart Speaker,Electronics,55,149.99,8249.45,North America,Consumer
+2024-02-28,Fitness Tracker,Sports,62,79.99,4959.38,Europe,Consumer
+2024-03-01,Golf Club Set,Sports,12,599.99,7199.88,North America,Business
+2024-03-03,Energy Drinks Pack,Food & Beverage,88,29.99,2639.12,North America,Consumer
+2024-03-05,Organic Snacks,Food & Beverage,75,14.99,1124.25,Europe,Consumer
+2024-03-07,Leather Jacket,Clothing,15,349.99,5249.85,North America,Consumer
+2024-03-09,Summer Dress,Clothing,42,79.99,3359.58,Europe,Consumer
+2024-03-11,Lawn Mower,Home & Garden,6,449.99,2699.94,North America,Consumer
+2024-03-13,Security Camera,Home & Garden,28,199.99,5599.72,North America,Business
+2024-03-15,Laptop Pro X,Electronics,35,1299.99,45499.65,North America,Business
