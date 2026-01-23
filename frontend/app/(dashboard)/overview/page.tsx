@@ -374,12 +374,12 @@ export default function OverviewPage() {
                             <AreaChart data={stats?.smart_analysis?.sales_over_time?.length ? stats.smart_analysis.sales_over_time : demoRevenueData}>
                                 <defs>
                                     <linearGradient id="gradientRevenue" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.4} />
-                                        <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0} />
+                                        <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.4} />
+                                        <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
                                     </linearGradient>
                                     <linearGradient id="gradientStroke" x1="0" y1="0" x2="1" y2="0">
-                                        <stop offset="0%" stopColor="#8b5cf6" />
-                                        <stop offset="100%" stopColor="#6366f1" />
+                                        <stop offset="0%" stopColor="#3b82f6" />
+                                        <stop offset="100%" stopColor="#0ea5e9" />
                                     </linearGradient>
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} opacity={0.3} />
@@ -447,10 +447,10 @@ export default function OverviewPage() {
                             <PieChart>
                                 <defs>
                                     {[
-                                        ['#8b5cf6', '#6366f1'],
+                                        ['#3b82f6', '#60a5fa'],
                                         ['#10b981', '#34d399'],
                                         ['#f59e0b', '#fbbf24'],
-                                        ['#ec4899', '#f472b6'],
+                                        ['#8b5cf6', '#a78bfa'],
                                         ['#06b6d4', '#22d3ee']
                                     ].map((colors, i) => (
                                         <linearGradient key={i} id={`gradientPie${i}`} x1="0" y1="0" x2="1" y2="1">
@@ -520,8 +520,8 @@ export default function OverviewPage() {
                             >
                                 <defs>
                                     <linearGradient id="gradientBar" x1="0" y1="0" x2="1" y2="0">
-                                        <stop offset="0%" stopColor="#ec4899" />
-                                        <stop offset="100%" stopColor="#8b5cf6" />
+                                        <stop offset="0%" stopColor="#3b82f6" />
+                                        <stop offset="100%" stopColor="#0ea5e9" />
                                     </linearGradient>
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border)" opacity={0.3} />
@@ -567,24 +567,24 @@ export default function OverviewPage() {
         {
             id: "list_products",
             title: "Top Products",
-            defaultSize: "large" as const,
+            defaultSize: "medium" as const,
             component: (
-                <div className="h-full bg-card p-4">
+                <div className="h-full premium-card p-5 flex flex-col">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="font-semibold text-foreground">Top Products</h3>
                         <Link href="/datasets">
                             <Button variant="ghost" size="sm" className="h-8 text-xs">View All</Button>
                         </Link>
                     </div>
-                    <div className="space-y-2 overflow-y-auto max-h-[220px] pr-2">
+                    <div className="space-y-3 overflow-y-auto max-h-[250px] pr-2 custom-scrollbar">
                         {(stats?.smart_analysis?.top_categories?.length ? stats.smart_analysis.top_categories : demoTopProducts).slice(0, 5).map((item: any, idx: number) => (
-                            <div key={idx} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
+                            <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border/50 hover:bg-muted/50 transition-colors group">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-6 h-6 rounded bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
+                                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-sm font-bold text-primary group-hover:scale-110 transition-transform">
                                         #{idx + 1}
                                     </div>
                                     <div>
-                                        <p className="font-medium text-foreground text-sm truncate max-w-[120px]">{item.name}</p>
+                                        <p className="font-medium text-foreground text-sm truncate max-w-[140px]">{item.name}</p>
                                     </div>
                                 </div>
                                 <div className="text-right">
@@ -599,11 +599,11 @@ export default function OverviewPage() {
         {
             id: "quick_actions",
             title: "Quick Actions",
-            defaultSize: "small" as const,
+            defaultSize: "medium" as const,
             component: (
-                <div className="h-full premium-card p-5 flex flex-col justify-center gap-3">
-                    <h3 className="font-semibold text-foreground mb-1">Quick Actions</h3>
-                    <div className="grid grid-cols-2 gap-2">
+                <div className="h-full premium-card p-5 flex flex-col justify-center gap-4">
+                    <h3 className="font-semibold text-foreground">Quick Actions</h3>
+                    <div className="grid grid-cols-2 gap-3 h-full">
                         {(isAdmin ? [
                             { label: "Upload", href: "/datasets", icon: Plus },
                             { label: "New Client", href: "/clients", icon: Building2 },
@@ -615,10 +615,12 @@ export default function OverviewPage() {
                             { label: "Ask AI", href: "/insights", icon: MessageSquareText },
                             { label: "Settings", href: "/settings", icon: Settings },
                         ]).map((action, idx) => (
-                            <Link key={idx} href={action.href}>
-                                <div className="h-auto py-2 px-3 rounded-xl border border-border bg-muted/30 hover:bg-primary/5 hover:border-primary/30 transition-all flex flex-col items-center gap-1 group">
-                                    <action.icon className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                                    <span className="text-[10px] font-medium text-muted-foreground group-hover:text-foreground">{action.label}</span>
+                            <Link key={idx} href={action.href} className="h-full">
+                                <div className="h-full p-4 rounded-xl border border-border bg-muted/30 hover:bg-primary/5 hover:border-primary/30 transition-all flex flex-col items-center justify-center gap-2 group cursor-pointer hover:shadow-md">
+                                    <div className="p-2 rounded-full bg-background border border-border group-hover:bg-primary group-hover:border-primary transition-colors">
+                                        <action.icon className="w-5 h-5 text-muted-foreground group-hover:text-white transition-colors" />
+                                    </div>
+                                    <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground">{action.label}</span>
                                 </div>
                             </Link>
                         ))}
@@ -626,55 +628,7 @@ export default function OverviewPage() {
                 </div>
             )
         },
-        {
-            id: "widget_ai_insights",
-            title: "AI Analysis",
-            defaultSize: "medium" as const,
-            component: (
-                <div className="h-full premium-card p-5 relative overflow-hidden group">
-                    {/* Gradient Background */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-blue-500/5 opacity-50" />
-
-                    <div className="relative z-10 flex flex-col h-full">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-2">
-                                <div className="p-1.5 rounded-lg bg-primary/10 text-primary">
-                                    <Sparkles className="w-4 h-4" />
-                                </div>
-                                <h3 className="font-semibold text-foreground">AI Highlights</h3>
-                            </div>
-                            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                                {stats?.smart_analysis?.insights?.length || 2} new
-                            </span>
-                        </div>
-
-                        <div className="flex-1 overflow-y-auto pr-1 space-y-3 custom-scrollbar">
-                            {(stats?.smart_analysis?.insights || [
-                                "Revenue is trending upwards by 12.5% compared to last period.",
-                                "Laptop Pro X accounts for 32% of total category volume.",
-                                "Customer retention seems stable."
-                            ]).slice(0, 3).map((insight: any, i: number) => (
-                                <div key={i} className="flex gap-3 text-sm group/item">
-                                    <div className={`min-w-[4px] h-[4px] mt-2 rounded-full transition-colors ${insight.type === 'warning' ? 'bg-orange-500/50 group-hover/item:bg-orange-500' :
-                                        insight.type === 'positive' ? 'bg-green-500/50 group-hover/item:bg-green-500' :
-                                            'bg-primary/50 group-hover/item:bg-primary'
-                                        }`} />
-                                    <p className="text-muted-foreground group-hover/item:text-foreground transition-colors leading-relaxed">
-                                        {typeof insight === 'string' ? insight : insight.text}
-                                    </p>
-                                </div>
-                            ))}
-                        </div>
-
-                        <div className="mt-3 pt-3 border-t border-border/50">
-                            <Link href="/insights" className="flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 transition-colors">
-                                View full analysis <ArrowRight className="w-3 h-3" />
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-            )
-        }
+        // AI Insights Widget Removed (Moved to top static section)
 
     ], [stats, advancedStats, isAdmin])
 
@@ -800,8 +754,55 @@ export default function OverviewPage() {
                 </div>
             )}
 
-            {/* AI Insights Bar */}
+            {/* AI Assistant & Highlights Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                {/* 1. Ask AI CTA */}
+                <Link href="/insights" className="h-full">
+                    <div className="h-full relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary/10 via-purple-500/5 to-pink-500/10 border border-primary/20 p-8 hover:border-primary/40 transition-all cursor-pointer group flex flex-col justify-center shadow-sm">
+                        <div className="flex items-center gap-6">
+                            <div className="p-4 rounded-2xl bg-gradient-to-br from-primary to-purple-600 shadow-lg shadow-primary/20 group-hover:scale-105 transition-transform">
+                                <Sparkles className="w-8 h-8 text-white" />
+                            </div>
+                            <div className="flex-1">
+                                <h2 className="text-xl font-semibold text-foreground mb-1">Ask AI Assistant</h2>
+                                <p className="text-sm text-muted-foreground">Ask questions about your data and get intelligent answers instantly.</p>
+                            </div>
+                            <Button className="bg-primary hover:bg-primary/90 hidden md:flex rounded-xl">
+                                Open Assistant <ArrowRight className="w-4 h-4 ml-2" />
+                            </Button>
+                        </div>
+                    </div>
+                </Link>
 
+                {/* 2. Latest AI Highlights (Static) */}
+                <div className="h-full premium-card p-6 flex flex-col justify-center min-h-[160px]">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                            <div className="p-1.5 rounded-lg bg-primary/10 text-primary">
+                                <Sparkles className="w-4 h-4" />
+                            </div>
+                            <h3 className="font-semibold text-foreground">AI Highlights</h3>
+                        </div>
+                        <Link href="/insights" className="text-xs font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1">
+                            View All <ArrowRight className="w-3 h-3" />
+                        </Link>
+                    </div>
+                    <div className="space-y-3">
+                        {(stats?.smart_analysis?.insights || [
+                            "Revenue is trending upwards by 12.5% compared to last period.",
+                            "Laptop Pro X accounts for 32% of total category volume.",
+                            "Customer retention seems stable."
+                        ]).slice(0, 3).map((insight: any, i: number) => (
+                            <div key={i} className="flex gap-3 text-sm group/item">
+                                <div className={`min-w-[4px] h-[4px] mt-2 rounded-full transition-colors ${typeof insight !== 'string' && insight.type === 'positive' ? 'bg-green-500' : 'bg-primary'}`} />
+                                <p className="text-muted-foreground group-hover:text-foreground transition-colors leading-relaxed">
+                                    {typeof insight === 'string' ? insight : insight.text}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
 
             {/* Draggable Dashboard Grid */}
             <DraggableGrid

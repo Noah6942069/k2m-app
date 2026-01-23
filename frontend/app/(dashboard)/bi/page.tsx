@@ -556,14 +556,14 @@ export default function BIAnalyticsPage() {
                 <div className="grid md:grid-cols-3 gap-4">
                     {demoAnomalies.map((anomaly, i) => (
                         <div key={i} className={`p-4 rounded-xl border ${anomaly.severity === 'high' ? 'bg-red-500/5 border-red-500/20' :
-                                anomaly.severity === 'medium' ? 'bg-orange-500/5 border-orange-500/20' :
-                                    'bg-yellow-500/5 border-yellow-500/20'
+                            anomaly.severity === 'medium' ? 'bg-orange-500/5 border-orange-500/20' :
+                                'bg-yellow-500/5 border-yellow-500/20'
                             }`}>
                             <div className="flex items-center justify-between mb-2">
                                 <span className="text-sm font-medium text-foreground">{anomaly.metric}</span>
                                 <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${anomaly.severity === 'high' ? 'bg-red-500/20 text-red-500' :
-                                        anomaly.severity === 'medium' ? 'bg-orange-500/20 text-orange-500' :
-                                            'bg-yellow-500/20 text-yellow-500'
+                                    anomaly.severity === 'medium' ? 'bg-orange-500/20 text-orange-500' :
+                                        'bg-yellow-500/20 text-yellow-500'
                                     }`}>
                                     {anomaly.severity}
                                 </span>
@@ -581,36 +581,41 @@ export default function BIAnalyticsPage() {
                 </div>
             </div>
 
-            {/* Data Quality */}
+            {/* Data Quality Metrics */}
             <div className="premium-card p-6">
                 <div className="flex items-center gap-2 mb-6">
-                    <Shield className="w-5 h-5 text-blue-500" />
-                    <h3 className="font-semibold text-foreground">{t.bi.dataQuality}</h3>
+                    <Shield className="w-5 h-5 text-primary" />
+                    <h3 className="font-semibold text-foreground">Data Quality Metrics</h3>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                     {[
-                        { label: t.bi.completeness, value: demoDataQuality.completeness, color: 'green' },
-                        { label: t.bi.accuracy, value: demoDataQuality.accuracy, color: 'blue' },
-                        { label: t.bi.consistency, value: demoDataQuality.consistency, color: 'purple' },
-                        { label: t.bi.timeliness, value: demoDataQuality.timeliness, color: 'orange' },
+                        { label: t.bi.completeness, value: demoDataQuality.completeness, color: '#3b82f6' },
+                        { label: t.bi.accuracy, value: demoDataQuality.accuracy, color: '#8b5cf6' },
+                        { label: t.bi.consistency, value: demoDataQuality.consistency, color: '#10b981' },
+                        { label: t.bi.timeliness, value: demoDataQuality.timeliness, color: '#f59e0b' },
                     ].map((metric, i) => (
-                        <div key={i} className="text-center">
-                            <div className="relative w-20 h-20 mx-auto mb-2">
-                                <svg className="w-20 h-20 -rotate-90">
-                                    <circle cx="40" cy="40" r="32" fill="none" stroke="var(--border)" strokeWidth="6" />
+                        <div key={i} className="text-center group">
+                            <div className="relative w-24 h-24 mx-auto mb-3 flex items-center justify-center">
+                                {/* Refined Clean Ring */}
+                                <svg className="w-full h-full -rotate-90">
+                                    <circle cx="48" cy="48" r="40" fill="none" stroke="currentColor" strokeWidth="8" className="text-muted/10" />
                                     <circle
-                                        cx="40" cy="40" r="32" fill="none"
-                                        stroke={metric.color === 'green' ? '#22c55e' : metric.color === 'blue' ? '#3b82f6' : metric.color === 'purple' ? '#8b5cf6' : '#f97316'}
-                                        strokeWidth="6"
+                                        cx="48"
+                                        cy="48"
+                                        r="40"
+                                        fill="none"
+                                        stroke={metric.color}
+                                        strokeWidth="8"
                                         strokeLinecap="round"
-                                        strokeDasharray={`${(metric.value / 100) * 201} 201`}
+                                        strokeDasharray={`${(metric.value / 100) * 251} 251`}
+                                        className="transition-all duration-1000 ease-out"
                                     />
                                 </svg>
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <span className="text-lg font-bold text-foreground">{metric.value}%</span>
+                                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                    <span className="text-xl font-bold tracking-tight text-foreground">{metric.value}%</span>
                                 </div>
                             </div>
-                            <p className="text-sm text-muted-foreground">{metric.label}</p>
+                            <p className="text-sm font-medium text-muted-foreground">{metric.label}</p>
                         </div>
                     ))}
                 </div>

@@ -89,7 +89,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
             )}
         >
             {/* Logo Area */}
-            <div className="h-16 flex items-center px-6 border-b border-border/50">
+            <div className="h-20 flex items-center px-6 border-b border-border/50">
                 <Link href="/dashboard" className="flex items-center gap-3">
                     {/* Theme-aware logo */}
                     <img
@@ -97,7 +97,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                         alt="K2M Analytics"
                         className={cn(
                             "transition-all duration-300",
-                            collapsed ? "h-8 w-auto" : "h-10 w-auto"
+                            collapsed ? "h-10 w-auto" : "h-14 w-auto"
                         )}
                     />
                 </Link>

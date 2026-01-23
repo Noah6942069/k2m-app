@@ -129,7 +129,7 @@ export default function HomePage() {
             </div>
 
             {/* Quick Navigation - 4 Clean Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 {quickLinks.map((link, idx) => (
                     <Link key={idx} href={link.href}>
                         <div className="group relative overflow-hidden rounded-2xl bg-card border border-border p-6 hover:border-primary/30 transition-all duration-300 hover:shadow-lg cursor-pointer h-full">
@@ -143,47 +143,57 @@ export default function HomePage() {
                 ))}
             </div>
 
-            {/* AI Assistant CTA - Single Prominent Card */}
-            <Link href="/insights">
-                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary/10 via-purple-500/5 to-pink-500/10 border border-primary/20 p-8 hover:border-primary/40 transition-all cursor-pointer group">
-                    <div className="flex items-center gap-6">
-                        <div className="p-4 rounded-2xl bg-gradient-to-br from-primary to-purple-600 shadow-lg shadow-primary/20">
-                            <Sparkles className="w-8 h-8 text-white" />
-                        </div>
-                        <div className="flex-1">
-                            <h2 className="text-xl font-semibold text-foreground mb-1">{t.home.askAI}</h2>
-                            <p className="text-muted-foreground">{t.home.descInsights}</p>
-                        </div>
-                        <Button className="bg-primary hover:bg-primary/90 hidden md:flex">
-                            {t.home.open} <ArrowRight className="w-4 h-4 ml-2" />
-                        </Button>
-                    </div>
-                    {/* Decorative gradient orb */}
-                    <div className="absolute -right-20 -top-20 w-64 h-64 rounded-full bg-gradient-to-br from-primary/20 to-transparent blur-3xl group-hover:from-primary/30 transition-all" />
-                </div>
-            </Link>
-
-            {/* Latest Insight Preview - Minimal */}
-            {stats?.smart_analysis?.insights?.length > 0 && (
-                <div className="rounded-2xl bg-card border border-border p-6">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-2">
-                            <Sparkles className="w-4 h-4 text-primary" />
-                            <h3 className="font-medium text-foreground">{t.home.latestInsights}</h3>
-                        </div>
-                        <Link href="/insights">
-                            <Button variant="ghost" size="sm" className="text-primary text-sm">
-                                {t.home.viewAll}
+            {/* AI and Insights Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Ask AI CTA */}
+                <Link href="/insights" className="h-full">
+                    <div className="h-full relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary/10 via-purple-500/5 to-pink-500/10 border border-primary/20 p-8 hover:border-primary/40 transition-all cursor-pointer group flex flex-col justify-center">
+                        <div className="flex items-center gap-6">
+                            <div className="p-4 rounded-2xl bg-gradient-to-br from-primary to-purple-600 shadow-lg shadow-primary/20 group-hover:scale-105 transition-transform">
+                                <Sparkles className="w-8 h-8 text-white" />
+                            </div>
+                            <div className="flex-1">
+                                <h2 className="text-xl font-semibold text-foreground mb-1">{t.home.askAI}</h2>
+                                <p className="text-sm text-muted-foreground">{t.home.descInsights}</p>
+                            </div>
+                            <Button className="bg-primary hover:bg-primary/90 hidden lg:flex rounded-xl text-primary-foreground">
+                                {t.home.open} <ArrowRight className="w-4 h-4 ml-2" />
                             </Button>
-                        </Link>
+                        </div>
+                        {/* Decorative gradient orb */}
+                        <div className="absolute -right-20 -top-20 w-64 h-64 rounded-full bg-gradient-to-br from-primary/20 to-transparent blur-3xl group-hover:from-primary/30 transition-all" />
                     </div>
-                    <p className="text-muted-foreground text-sm leading-relaxed">
-                        {typeof stats.smart_analysis.insights[0] === 'string'
-                            ? stats.smart_analysis.insights[0]
-                            : stats.smart_analysis.insights[0]?.text}
-                    </p>
-                </div>
-            )}
+                </Link>
+
+                {/* Latest Insight Preview */}
+                {stats?.smart_analysis?.insights?.length > 0 ? (
+                    <div className="h-full rounded-2xl bg-card border border-border p-6 flex flex-col justify-center hover:border-primary/30 transition-colors">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-2">
+                                <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                                    <Sparkles className="w-4 h-4" />
+                                </div>
+                                <h3 className="font-medium text-foreground">{t.home.latestInsights}</h3>
+                            </div>
+                            <Link href="/insights">
+                                <Button variant="ghost" size="sm" className="text-primary text-sm hover:bg-primary/10">
+                                    {t.home.viewAll} <ArrowRight className="w-3 h-3 ml-1" />
+                                </Button>
+                            </Link>
+                        </div>
+                        <p className="text-muted-foreground text-sm leading-relaxed line-clamp-3">
+                            {typeof stats.smart_analysis.insights[0] === 'string'
+                                ? stats.smart_analysis.insights[0]
+                                : stats.smart_analysis.insights[0]?.text}
+                        </p>
+                    </div>
+                ) : (
+                    <div className="h-full rounded-2xl bg-muted/30 border border-border/50 border-dashed p-6 flex flex-col items-center justify-center text-center gap-2">
+                        <Sparkles className="w-8 h-8 text-muted-foreground/50" />
+                        <p className="text-sm text-muted-foreground">No new insights available right now.</p>
+                    </div>
+                )}
+            </div>
         </div>
     )
 }
