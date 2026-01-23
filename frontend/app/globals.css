@@ -313,6 +313,8 @@
 
   html {
     scroll-behavior: smooth;
+    /* Defensive fix: Hide blinking cursor on non-inputs */
+    caret-color: transparent;
   }
 
   body {
@@ -328,6 +330,8 @@
   textarea,
   [contenteditable="true"] {
     cursor: text;
+    /* Restore cursor for inputs */
+    caret-color: auto;
   }
 
   .font-display {
