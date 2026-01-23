@@ -28,7 +28,8 @@ import {
     FileText,
     Zap,
     Home,
-    PieChart
+    PieChart,
+    Calculator
 } from "lucide-react"
 import { CommandMenu } from "./CommandMenu"
 
@@ -58,6 +59,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         { href: "/analysis", label: t.navigation.analysis, icon: Beaker },
         { href: "/compare", label: t.navigation.compare, icon: ArrowLeftRight },
         { href: "/goals", label: t.navigation.goals, icon: Target },
+        { href: "/simulation", label: "Simulation", icon: Calculator },
         { href: "/reports", label: t.navigation.reports, icon: FileText },
         { href: "/settings", label: t.navigation.settings, icon: Settings },
     ]
@@ -71,6 +73,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         { href: "/chart-builder", label: t.navigation.chartBuilder, icon: BarChart3 },
         { href: "/compare", label: t.navigation.compare, icon: ArrowLeftRight },
         { href: "/goals", label: t.navigation.goals, icon: Target },
+        { href: "/simulation", label: "Simulation", icon: Calculator },
         { href: "/reports", label: t.navigation.reports, icon: FileText },
         { href: "/settings", label: t.navigation.settings, icon: Settings },
     ]

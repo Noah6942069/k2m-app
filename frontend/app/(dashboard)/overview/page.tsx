@@ -24,7 +24,9 @@ import {
     Target,
     Clock,
     Wallet,
-    ArrowRight
+    ArrowRight,
+    LayoutGrid,
+    List
 } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -55,6 +57,7 @@ import { AdvancedStats, DashboardStats } from "@/types/dashboard"
 import { WidgetSelector } from "@/components/dashboard/WidgetSelector"
 import { KPICard } from "@/components/dashboard/KPICard"
 import { DraggableGrid, EditModeButton, useDashboardLayout } from "@/components/dashboard/DraggableGrid"
+import { OverviewTable } from "@/components/dashboard/OverviewTable"
 
 // Demo data fallback
 const demoRevenueData = [
@@ -91,6 +94,7 @@ export default function OverviewPage() {
     const [datasets, setDatasets] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [editMode, setEditMode] = useState(false)
+    const [viewMode, setViewMode] = useState<"grid" | "table">("grid")
 
     const [stats, setStats] = useState<DashboardStats | null>(null)
     const [advancedStats, setAdvancedStats] = useState<AdvancedStats | null>(null)
@@ -661,6 +665,23 @@ export default function OverviewPage() {
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
+                    {/* View Toggle */}
+                    <div className="flex bg-muted rounded-lg p-1 border border-border">
+                        <button
+                            onClick={() => setViewMode("grid")}
+                            className={`p-2 rounded-md transition-all ${viewMode === "grid" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                            title="Grid View"
+                        >
+                            <LayoutGrid className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => setViewMode("table")}
+                            className={`p-2 rounded-md transition-all ${viewMode === "table" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                            title="Density Mode (Table)"
+                        >
+                            <List className="w-4 h-4" />
+                        </button>
+                    </div>
                     <EditModeButton editMode={editMode} onToggle={() => setEditMode(!editMode)} />
 
                     {isAdmin && (
@@ -805,12 +826,25 @@ export default function OverviewPage() {
             </div>
 
             {/* Draggable Dashboard Grid */}
-            <DraggableGrid
-                widgets={widgets}
-                editMode={editMode}
-                savedLayout={layout}
-                onLayoutChange={saveLayout}
-            />
+            {viewMode === "grid" ? (
+                <DraggableGrid
+                    widgets={widgets}
+                    editMode={editMode}
+                    savedLayout={layout}
+                    onLayoutChange={saveLayout}
+                />
+            ) : (
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <OverviewTable data={[
+                        { id: "rev", title: "Total Revenue", value: stats?.smart_analysis?.total_sales ? `$${formatNumber(stats.smart_analysis.total_sales)}` : formatNumber(stats?.total_rows), trend: 12.5, sparklineData: [4, 6, 5, 8, 7, 9, 8, 10, 9, 12], color: "#8b5cf6" },
+                        { id: "growth", title: "Growth Rate", value: advancedStats?.growth_rate ? `${advancedStats.growth_rate}%` : "+8.2%", trend: advancedStats?.growth_rate || 8.2, sparklineData: [3, 4, 6, 5, 7, 8, 7, 9, 8, 10], color: "#10b981" },
+                        { id: "health", title: "Data Health", value: advancedStats?.data_health_score ? `${advancedStats.data_health_score}%` : "98%", status: "positive", color: "#3b82f6" },
+                        { id: "trans", title: "Transactions", value: formatNumber(advancedStats?.transaction_count || stats?.total_rows), trend: 5.3, sparklineData: [8, 7, 9, 10, 8, 11, 10, 12, 11, 13], color: "#f59e0b" },
+                        { id: "cats", title: "Unique Categories", value: advancedStats?.unique_categories || 0, trend: 0, color: "#ec4899" },
+                        { id: "avg", title: "Avg. Order Value", value: stats?.smart_analysis?.average_sales ? `$${formatNumber(stats.smart_analysis.average_sales)}` : "-", color: "#06b6d4" }
+                    ]} />
+                </div>
+            )}
         </div>
     )
 }
