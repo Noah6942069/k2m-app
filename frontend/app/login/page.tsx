@@ -39,7 +39,7 @@ export default function LoginPage() {
             setEmail("admin@k2m.com")
             setPassword("admin123")
         } else {
-            setEmail("acme@client.com")
+            setEmail("altech@client.com")
             setPassword("client123")
         }
     }

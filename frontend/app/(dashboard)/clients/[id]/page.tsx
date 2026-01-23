@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button"
 
 // Demo client data
 const clientsData: Record<string, any> = {
-    "1": { name: "Acme Corporation", industry: "Retail", status: "active" },
+    "1": { name: "Altech", industry: "Retail", status: "active" },
     "2": { name: "TechStart Inc", industry: "Technology", status: "active" },
     "3": { name: "Global Foods Ltd", industry: "Food & Beverage", status: "active" },
     "4": { name: "Urban Motors", industry: "Automotive", status: "pending" },
@@ -53,8 +53,8 @@ export default function ClientDetailPage() {
                         <h1 className="text-2xl font-bold text-white">{client.name}</h1>
                         <p className="text-zinc-500">{client.industry}</p>
                         <span className={`inline-block mt-2 px-2 py-1 text-xs rounded-full ${client.status === "active"
-                                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                                : "bg-yellow-500/10 text-yellow-400 border border-yellow-500/20"
+                            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                            : "bg-yellow-500/10 text-yellow-400 border border-yellow-500/20"
                             }`}>
                             {client.status}
                         </span>

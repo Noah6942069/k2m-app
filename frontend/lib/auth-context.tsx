@@ -35,15 +35,15 @@ const DEMO_USERS: Record<string, { password: string; user: User }> = {
             role: "admin"
         }
     },
-    "acme@client.com": {
+    "altech@client.com": {
         password: "client123",
         user: {
             id: "2",
-            email: "acme@client.com",
-            name: "Acme Corporation",
+            email: "altech@client.com",
+            name: "Altech",
             role: "client",
             companyId: "1",
-            companyName: "Acme Corporation"
+            companyName: "Altech"
         }
     },
     "techstart@client.com": {
@@ -68,13 +68,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         setMounted(true)
         try {
-            const storedUser = localStorage.getItem("k2m_user")
+            const storedUser = localStorage.getItem("k2m_session_v2")
             if (storedUser) {
                 const parsed = JSON.parse(storedUser)
                 setUser(parsed)
             }
         } catch {
-            localStorage.removeItem("k2m_user")
+            localStorage.removeItem("k2m_session_v2")
         }
         setLoading(false)
     }, [])
@@ -92,14 +92,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         setUser(demoUser.user)
-        localStorage.setItem("k2m_user", JSON.stringify(demoUser.user))
+        localStorage.setItem("k2m_session_v2", JSON.stringify(demoUser.user))
 
         return { success: true }
     }, [])
 
     const logout = useCallback(() => {
         setUser(null)
-        localStorage.removeItem("k2m_user")
+        localStorage.removeItem("k2m_session_v2")
         // Navigation handled by the component calling logout
     }, [])
 

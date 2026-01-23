@@ -13,6 +13,7 @@ import {
     Plus
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { SidebarStats } from "@/components/layout/SidebarStats"
 
 interface Message {
     id: string
@@ -61,22 +62,12 @@ const generateInsights = (): Insight[] => [
     }
 ]
 
-// Simulated AI responses
-const aiResponses: Record<string, string> = {
-    "default": "Based on your data, I can see several interesting patterns. Would you like me to analyze sales trends, profit margins, or customer behavior?",
-    "sales": "Looking at your sales data, December was your strongest month with $420K in revenue, likely due to holiday shopping. June was the weakest at $280K. I recommend focusing marketing efforts on the summer months to address this seasonal dip.",
-    "profit": "Your overall profit margin is 28.5%, which is above industry average. Product Category A contributes the most to profits at 34% margin, while Category C is underperforming at just 12% margin. Consider reviewing pricing or costs for Category C.",
-    "best": "Your best performing month was December with $420K in sales and 32% profit margin. The key drivers were: 1) Holiday promotions, 2) New product launches, 3) Increased repeat customer purchases.",
-    "worst": "June was your weakest month with $280K in sales, 23% below average. This appears to be a seasonal pattern. I recommend: 1) Summer-specific promotions, 2) Product bundles, 3) Email campaigns to existing customers.",
-    "trend": "I see an upward trend in your data. Year-over-year growth is 15%, and the trajectory suggests you could reach $5M annual revenue by maintaining current momentum.",
-    "recommend": "Based on my analysis, here are my top 3 recommendations: 1) Invest more in Category A products (highest margin), 2) Launch summer marketing campaigns to address June dip, 3) Focus on customer retention - repeat customers have 40% higher order values."
-}
-
 export default function InsightsPage() {
     const [messages, setMessages] = useState<Message[]>([])
     const [input, setInput] = useState("")
     const [isTyping, setIsTyping] = useState(false)
-    const [insights] = useState<Insight[]>(generateInsights())
+    const [stats, setStats] = useState<any>(null)
+    const [loading, setLoading] = useState(true)
     const [copied, setCopied] = useState<string | null>(null)
     const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -84,21 +75,46 @@ export default function InsightsPage() {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
     }, [messages])
 
-    const getAIResponse = (userMessage: string): string => {
-        const lower = userMessage.toLowerCase()
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                const dsRes = await fetch("http://localhost:8000/datasets/")
+                if (dsRes.ok) {
+                    const data = await dsRes.json()
+                    if (data.length > 0) {
+                        const latest = data[data.length - 1]
+                        const statsRes = await fetch(`http://localhost:8000/analytics/${latest.id}/stats`)
+                        if (statsRes.ok) {
+                            const statsData = await statsRes.json()
+                            setStats(statsData)
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error(error)
+            } finally {
+                setLoading(false)
+            }
+        }
+        loadData()
+    }, [])
 
-        if (lower.includes("sales") || lower.includes("revenue")) return aiResponses.sales
-        if (lower.includes("profit") || lower.includes("margin")) return aiResponses.profit
-        if (lower.includes("best") || lower.includes("highest")) return aiResponses.best
-        if (lower.includes("worst") || lower.includes("lowest") || lower.includes("bad")) return aiResponses.worst
-        if (lower.includes("trend") || lower.includes("growth")) return aiResponses.trend
-        if (lower.includes("recommend") || lower.includes("suggest") || lower.includes("should")) return aiResponses.recommend
+    const getDynamicInsights = (): Insight[] => {
+        if (!stats?.smart_analysis?.insights) return generateInsights() // Fallback
 
-        return aiResponses.default
+        return stats.smart_analysis.insights.map((ins: any) => ({
+            type: ins.type === "positive" ? "trend" : ins.type === "warning" ? "alert" : "recommendation",
+            title: ins.type === "positive" ? "Positive Trend Detected" : ins.type === "warning" ? "Attention Needed" : "Insight",
+            description: ins.text,
+            metric: "Analysis",
+            change: 0 // Backend doesn't give % change yet, keeping simple
+        }))
     }
 
+    const insights = getDynamicInsights()
+
     const sendMessage = async () => {
-        if (!input.trim()) return
+        if (!input.trim() || !stats) return
 
         const userMessage: Message = {
             id: Date.now().toString(),
@@ -107,22 +123,42 @@ export default function InsightsPage() {
             timestamp: new Date()
         }
 
+        const currentInput = input
         setMessages(prev => [...prev, userMessage])
         setInput("")
         setIsTyping(true)
 
-        // Simulate AI thinking
-        await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000))
+        try {
+            const res = await fetch(`http://localhost:8000/analytics/${stats.dataset_id}/chat`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: currentInput })
+            })
 
-        const aiMessage: Message = {
-            id: (Date.now() + 1).toString(),
-            role: "ai",
-            content: getAIResponse(input),
-            timestamp: new Date()
+            if (res.ok) {
+                const data = await res.json()
+                const aiMessage: Message = {
+                    id: Date.now().toString(),
+                    role: "ai",
+                    content: data.response,
+                    timestamp: new Date()
+                }
+                setMessages(prev => [...prev, aiMessage])
+            } else {
+                throw new Error("Failed to fetch AI response")
+            }
+        } catch (error) {
+            console.error(error)
+            const aiMessage: Message = {
+                id: Date.now().toString(),
+                role: "ai",
+                content: "I'm sorry, I encountered an error while analyzing your data. Please check your API connection.",
+                timestamp: new Date()
+            }
+            setMessages(prev => [...prev, aiMessage])
+        } finally {
+            setIsTyping(false)
         }
-
-        setIsTyping(false)
-        setMessages(prev => [...prev, aiMessage])
     }
 
     const copyToClipboard = (text: string, id: string) => {
@@ -192,19 +228,48 @@ export default function InsightsPage() {
                             </div>
                         </div>
                     </div>
+
+                </div>
+
+                {/* Fixed Stats Footer */}
+                <div className="p-4 border-t border-border mt-auto">
+                    <SidebarStats collapsed={false} />
                 </div>
             </div>
 
             {/* Right: Chat Interface */}
             <div className="flex-1 flex flex-col rounded-2xl bg-card border border-border overflow-hidden">
                 {/* Chat Header */}
-                <div className="p-4 border-b border-border flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center ai-pulse">
-                        <Sparkles className="w-5 h-5 text-white" />
+                <div className="p-4 border-b border-border flex flex-col gap-4">
+                    {/* Insights Ticker */}
+                    <div className="p-3 rounded-xl bg-gradient-to-r from-[#7c5cfc]/10 to-[#5b8def]/10 border border-[#7c5cfc]/20 flex items-center gap-4 overflow-hidden">
+                        <div className="flex-shrink-0 flex items-center gap-2 px-2 border-r border-[#7c5cfc]/20">
+                            <Sparkles className="w-4 h-4 text-[#7c5cfc]" />
+                            <span className="text-sm font-medium text-foreground">Highlights</span>
+                        </div>
+                        <div className="flex items-center gap-6 animate-in slide-in-from-right-10 duration-1000">
+                            {insights.slice(0, 3).map((insight, idx) => (
+                                <div key={idx} className="flex-shrink-0 flex items-center gap-2 text-sm text-muted-foreground whitespace-nowrap">
+                                    <TrendingUp className={`w-3.5 h-3.5 ${insight.change && insight.change > 0 ? "text-emerald-500" : "text-amber-500"
+                                        }`} />
+                                    <span>{insight.title}</span>
+                                    <span className={`text-xs font-medium ${insight.change && insight.change > 0 ? "text-emerald-500" : "text-amber-500"
+                                        }`}>
+                                        {insight.change && insight.change > 0 ? "+" : ""}{insight.change}%
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
                     </div>
-                    <div>
-                        <h2 className="font-semibold text-foreground">K2M AI Assistant</h2>
-                        <p className="text-xs text-muted-foreground">Ask questions about your data</p>
+
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center ai-pulse">
+                            <Sparkles className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                            <h2 className="font-semibold text-foreground">K2M AI Assistant</h2>
+                            <p className="text-xs text-muted-foreground">Ask questions about your data</p>
+                        </div>
                     </div>
                 </div>
 

@@ -14,11 +14,22 @@ import {
     Building2,
     Plus,
     ChevronRight,
-    MessageSquareText
+    MessageSquareText,
+    Database,
+    Activity,
+    ShieldCheck,
+    Layers,
+    Calendar,
+    Settings,
+    Target,
+    Clock,
+    Wallet
 } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import {
+    Bar,
+    BarChart,
     AreaChart,
     Area,
     XAxis,
@@ -30,9 +41,21 @@ import {
     Pie,
     Cell
 } from "recharts"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 
-// Demo data
-const revenueData = [
+// New Imports
+import { AdvancedStats, DashboardStats } from "@/types/dashboard"
+import { WidgetSelector } from "@/components/dashboard/WidgetSelector"
+import { KPICard } from "@/components/dashboard/KPICard"
+
+// Demo data fallback
+const demoRevenueData = [
     { month: "Jan", revenue: 320000, profit: 89600 },
     { month: "Feb", revenue: 280000, profit: 78400 },
     { month: "Mar", revenue: 350000, profit: 98000 },
@@ -47,14 +70,14 @@ const revenueData = [
     { month: "Dec", revenue: 480000, profit: 134400 },
 ]
 
-const categoryData = [
+const demoCategoryData = [
     { name: "Electronics", value: 35, color: "#7c5cfc" },
     { name: "Clothing", value: 25, color: "#5b8def" },
     { name: "Food", value: 20, color: "#10b981" },
     { name: "Other", value: 20, color: "#3f3f46" },
 ]
 
-const topProducts = [
+const demoTopProducts = [
     { name: "Product Alpha", sales: 12500, growth: 23 },
     { name: "Product Beta", sales: 9800, growth: 15 },
     { name: "Product Gamma", sales: 7200, growth: -5 },
@@ -72,28 +95,171 @@ export default function DashboardPage() {
     const [datasets, setDatasets] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
 
-    useEffect(() => {
-        fetchDatasets()
-    }, [])
+    const [stats, setStats] = useState<DashboardStats | null>(null)
+    const [advancedStats, setAdvancedStats] = useState<AdvancedStats | null>(null)
+    const [recentDataset, setRecentDataset] = useState<any>(null)
+    const [preferences, setPreferences] = useState<Record<string, boolean>>({})
 
-    const fetchDatasets = async () => {
+    // Smart Filter System
+    const [suggestedFilters, setSuggestedFilters] = useState<any[]>([])
+    const [activeFilters, setActiveFilters] = useState<Record<string, string>>({})
+    const [selectedDatasetId, setSelectedDatasetId] = useState<number | null>(null)
+
+    // Load initial data
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                // 1. Load User Preferences
+                if (user?.email) {
+                    try {
+                        const prefRes = await fetch(`http://localhost:8000/preferences/dashboard/${user.email}`)
+                        if (prefRes.ok) {
+                            const prefData = await prefRes.json()
+                            setPreferences(prefData.widget_config)
+                        }
+                    } catch (e) {
+                        console.error("Failed to load preferences", e)
+                    }
+                }
+
+                // 2. Fetch all datasets
+                const dsRes = await fetch("http://localhost:8000/datasets/")
+                if (dsRes.ok) {
+                    const data = await dsRes.json()
+                    setDatasets(data)
+
+                    // 3. If we have datasets, fetch analytics for the most recent one
+                    if (data.length > 0) {
+                        const latest = data[data.length - 1]
+                        setRecentDataset(latest)
+                        setSelectedDatasetId(latest.id)
+
+                        // Fetch basic stats
+                        const statsRes = await fetch(`http://localhost:8000/analytics/${latest.id}/stats`)
+                        if (statsRes.ok) {
+                            const statsData = await statsRes.json()
+                            setStats(statsData)
+                        }
+
+                        // Fetch ADVANCED stats
+                        try {
+                            const advRes = await fetch(`http://localhost:8000/analytics/${latest.id}/advanced-stats`)
+                            if (advRes.ok) {
+                                const advData = await advRes.json()
+                                setAdvancedStats(advData)
+                            }
+                        } catch (e) {
+                            console.error("Failed to load advanced stats", e)
+                        }
+
+                        // Fetch suggested filters
+                        const filtersRes = await fetch(`http://localhost:8000/analytics/${latest.id}/filters`)
+                        if (filtersRes.ok) {
+                            const filtersData = await filtersRes.json()
+                            setSuggestedFilters(filtersData.filters || [])
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to fetch data", error)
+            } finally {
+                setLoading(false)
+            }
+        }
+        loadData()
+    }, [user])
+
+    const savePreferences = async (newPrefs: Record<string, boolean>) => {
+        setPreferences(newPrefs)
+        if (user?.email) {
+            try {
+                await fetch(`http://localhost:8000/preferences/dashboard/${user.email}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ widget_config: newPrefs })
+                })
+            } catch (e) {
+                console.error("Failed to save preferences", e)
+            }
+        }
+    }
+
+    // Helper to check if widget is enabled (default true if undefined)
+    const isWidgetEnabled = (id: string) => preferences[id] !== false
+
+    const handleDatasetChange = async (datasetId: number) => {
+        setSelectedDatasetId(datasetId)
+        setActiveFilters({})
+        setLoading(true)
+
         try {
-            const res = await fetch("http://localhost:8000/datasets/")
-            if (res.ok) {
-                const data = await res.json()
-                setDatasets(data)
+            const ds = datasets.find(d => d.id === datasetId)
+            setRecentDataset(ds)
+
+            const statsRes = await fetch(`http://localhost:8000/analytics/${datasetId}/stats`)
+            if (statsRes.ok) {
+                setStats(await statsRes.json())
+            }
+
+            const advRes = await fetch(`http://localhost:8000/analytics/${datasetId}/advanced-stats`)
+            if (advRes.ok) {
+                setAdvancedStats(await advRes.json())
+            }
+
+            const filtersRes = await fetch(`http://localhost:8000/analytics/${datasetId}/filters`)
+            if (filtersRes.ok) {
+                const filtersData = await filtersRes.json()
+                setSuggestedFilters(filtersData.filters || [])
             }
         } catch (error) {
-            console.error("Failed to fetch datasets")
+            console.error("Failed to load dataset", error)
         } finally {
             setLoading(false)
         }
     }
 
-    const formatCurrency = (value: number) => {
-        if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`
-        if (value >= 1000) return `$${(value / 1000).toFixed(0)}K`
-        return `$${value}`
+    // Handle filter change
+    const handleFilterChange = async (column: string, value: string) => {
+        const newFilters = { ...activeFilters, [column]: value }
+        if (value === "All") {
+            delete newFilters[column]
+        }
+        setActiveFilters(newFilters)
+
+        // Fetch filtered stats
+        if (selectedDatasetId) {
+            try {
+                const res = await fetch(`http://localhost:8000/analytics/${selectedDatasetId}/stats/filtered`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ filters: newFilters })
+                })
+                if (res.ok) {
+                    const filteredData = await res.json()
+                    setStats((prev: any) => ({
+                        ...prev,
+                        total_rows: filteredData.total_rows,
+                        smart_analysis: filteredData.smart_analysis
+                    }))
+                }
+            } catch (error) {
+                console.error("Failed to fetch filtered stats", error)
+            }
+        }
+    }
+
+    const formatNumber = (num: number | undefined | null) => {
+        if (num === undefined || num === null) return "0"
+        if (num >= 1000000) return (num / 1000000).toFixed(1) + "M"
+        if (num >= 1000) return (num / 1000).toFixed(1) + "K"
+        return num.toString()
+    }
+
+    // Fallback logic for growth if api provides null
+    const getGrowthRate = () => {
+        if (advancedStats?.growth_rate) return advancedStats.growth_rate;
+        // Mock fallback if nothing
+        return 18.2;
     }
 
     if (loading) {
@@ -119,20 +285,27 @@ export default function DashboardPage() {
                     </h1>
                     <p className="text-muted-foreground">
                         {isClient
-                            ? "Your company analytics overview"
+                            ? (stats?.smart_analysis?.summary || "Your company analytics overview")
                             : "Welcome back to K2M Analytics"
                         }
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
+                    <WidgetSelector preferences={preferences} onSave={savePreferences} />
+
                     {isAdmin && (
-                        <select className="px-4 py-2 rounded-xl bg-muted border border-border text-foreground text-sm">
-                            <option>All Clients</option>
-                            <option>Altech</option>
-                            <option>Synot</option>
-                            <option>Guarana Plus</option>
-                            <option>RayService</option>
-                        </select>
+                        <Select defaultValue="All Clients">
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Select Client" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="All Clients">All Clients</SelectItem>
+                                <SelectItem value="Altech">Altech</SelectItem>
+                                <SelectItem value="Synot">Synot</SelectItem>
+                                <SelectItem value="Guarana Plus">Guarana Plus</SelectItem>
+                                <SelectItem value="RayService">RayService</SelectItem>
+                            </SelectContent>
+                        </Select>
                     )}
                     {isAdmin ? (
                         <Link href="/clients">
@@ -152,202 +325,382 @@ export default function DashboardPage() {
                 </div>
             </div>
 
-            {/* AI Insights Bar */}
-            <div className="p-4 rounded-2xl bg-gradient-to-r from-[#7c5cfc]/10 to-[#5b8def]/10 border border-[#7c5cfc]/20">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-6">
+            {/* Smart Filters Bar */}
+            {(datasets.length > 0 || suggestedFilters.length > 0) && (
+                <div className="flex flex-wrap items-center gap-3 p-4 rounded-2xl bg-card border border-border">
+                    {datasets.length > 1 && (
                         <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-lg bg-[#7c5cfc]/20 flex items-center justify-center">
-                                <Sparkles className="w-4 h-4 text-[#7c5cfc]" />
-                            </div>
-                            <span className="text-sm font-medium text-white">AI Insights</span>
+                            <Database className="w-4 h-4 text-muted-foreground" />
+                            <Select
+                                value={selectedDatasetId ? String(selectedDatasetId) : ""}
+                                onValueChange={(value) => handleDatasetChange(Number(value))}
+                            >
+                                <SelectTrigger className="h-8 w-[200px] border-none bg-muted text-xs font-medium">
+                                    <SelectValue placeholder="Select Dataset" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {datasets.map((ds) => (
+                                        <SelectItem key={ds.id} value={String(ds.id)}>
+                                            {ds.filename}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
-                        <div className="hidden md:flex items-center gap-6 text-sm">
-                            {aiInsights.map((insight, idx) => (
-                                <div key={idx} className="flex items-center gap-2 text-zinc-400">
-                                    <insight.icon className={`w-4 h-4 ${insight.type === "positive" ? "text-emerald-400" :
-                                        insight.type === "warning" ? "text-yellow-400" : "text-[#7c5cfc]"
-                                        }`} />
-                                    <span>{insight.text}</span>
+                    )}
+
+                    {/* Dynamic Filters */}
+                    {suggestedFilters.length > 0 && (
+                        <>
+                            <div className="w-px h-6 bg-border mx-2" />
+                            {suggestedFilters.map((filter) => (
+                                <div key={filter.column} className="flex items-center gap-2">
+                                    <span className="text-xs text-muted-foreground font-medium">{filter.column}:</span>
+                                    <Select
+                                        value={activeFilters[filter.column] || "All"}
+                                        onValueChange={(value) => handleFilterChange(filter.column, value)}
+                                    >
+                                        <SelectTrigger className="h-8 min-w-[120px] bg-muted border-none text-xs">
+                                            <SelectValue placeholder="All" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="All">All</SelectItem>
+                                            {filter.values.map((val: string) => (
+                                                <SelectItem key={val} value={String(val)}>
+                                                    {String(val)}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            ))}
+                        </>
+                    )}
+
+                    {/* Active Filter Count */}
+                    {Object.keys(activeFilters).length > 0 && (
+                        <div className="ml-auto flex items-center gap-2">
+                            <span className="text-xs text-primary font-medium">
+                                {Object.keys(activeFilters).length} filter{Object.keys(activeFilters).length > 1 ? "s" : ""} active
+                            </span>
+                            <button
+                                onClick={() => {
+                                    setActiveFilters({})
+                                    if (selectedDatasetId) handleDatasetChange(selectedDatasetId)
+                                }}
+                                className="text-xs text-muted-foreground hover:text-foreground underline"
+                            >
+                                Clear all
+                            </button>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* AI Insights Bar */}
+            {isWidgetEnabled("insights_bar") && (
+                <div className="p-4 rounded-2xl bg-gradient-to-r from-[#7c5cfc]/10 to-[#5b8def]/10 border border-[#7c5cfc]/20">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-6">
+                            <div className="flex items-center gap-2">
+                                <div className="w-8 h-8 rounded-lg bg-[#7c5cfc]/20 flex items-center justify-center">
+                                    <Sparkles className="w-4 h-4 text-[#7c5cfc]" />
+                                </div>
+                                <span className="text-sm font-medium text-foreground">AI Insights</span>
+                            </div>
+                            <div className="hidden md:flex items-center gap-6 text-sm">
+                                {stats?.smart_analysis?.insights && stats.smart_analysis.insights.length > 0 ? (
+                                    stats.smart_analysis.insights.slice(0, 3).map((insight: any, idx: number) => {
+                                        let Icon = insight.icon;
+                                        if (!Icon) {
+                                            if (insight.type === "positive") Icon = TrendingUp;
+                                            else if (insight.type === "warning") Icon = TrendingDown;
+                                            else Icon = Sparkles;
+                                        }
+
+                                        return (
+                                            <div key={idx} className="flex items-center gap-2 text-zinc-400">
+                                                <Icon className={`w-4 h-4 ${insight.type === "positive" ? "text-emerald-400" :
+                                                    insight.type === "warning" ? "text-yellow-400" : "text-[#7c5cfc]"
+                                                    }`} />
+                                                <span className="truncate max-w-[200px] xl:max-w-none" title={insight.text}>{insight.text}</span>
+                                            </div>
+                                        )
+                                    })
+                                ) : (
+                                    <span className="text-zinc-500">Upload data to generate AI insights...</span>
+                                )}
+                            </div>
+                        </div>
+                        <Link href="/insights">
+                            <Button variant="ghost" size="sm" className="text-[#7c5cfc] hover:text-white">
+                                View All <ChevronRight className="w-4 h-4 ml-1" />
+                            </Button>
+                        </Link>
+                    </div>
+                </div>
+            )}
+
+            {/* KPI Cards Grid */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {isWidgetEnabled("kpi_revenue") && (
+                    <KPICard
+                        title={stats?.smart_analysis?.total_sales ? "Total Revenue" : "Total Rows"}
+                        value={stats?.smart_analysis?.total_sales ? `$${formatNumber(stats.smart_analysis.total_sales)}` : formatNumber(stats?.total_rows)}
+                        icon={DollarSign}
+                        trend={12.5}
+                        trendLabel="vs last month"
+                        subtitle="Gross revenue for period"
+                    />
+                )}
+
+                {isWidgetEnabled("kpi_growth") && (
+                    <KPICard
+                        title="Growth Rate"
+                        value={advancedStats?.growth_rate ? `${advancedStats.growth_rate}%` : "-"}
+                        icon={Activity}
+                        color="#10b981"
+                        trend={advancedStats?.growth_rate}
+                        subtitle="Period over period growth"
+                    />
+                )}
+
+                {isWidgetEnabled("kpi_health") && (
+                    <KPICard
+                        title="Data Health"
+                        value={advancedStats?.data_health_score ? `${advancedStats.data_health_score}%` : "100%"}
+                        icon={ShieldCheck}
+                        color="#3b82f6"
+                        subtitle={advancedStats?.data_quality_issues?.[0] || "No issues detected"}
+                    />
+                )}
+
+                {isWidgetEnabled("kpi_transactions") && (
+                    <KPICard
+                        title="Transactions"
+                        value={formatNumber(advancedStats?.transaction_count || stats?.total_rows)}
+                        icon={ShoppingCart}
+                        color="#f59e0b"
+                        subtitle="Total recorded rows"
+                    />
+                )}
+
+                {isWidgetEnabled("kpi_categories") && (
+                    <KPICard
+                        title="Unique Categories"
+                        value={advancedStats?.unique_categories || 0}
+                        icon={Layers}
+                        color="#ec4899"
+                        subtitle="Distinct product types"
+                    />
+                )}
+
+                {isWidgetEnabled("kpi_best_month") && (
+                    <KPICard
+                        title="Best Month"
+                        value={stats?.smart_analysis?.best_month || "-"}
+                        icon={Calendar}
+                        color="#8b5cf6"
+                        subtitle="Highest activity period"
+                    />
+                )}
+
+                {/* NEW: Average Value Card */}
+                <KPICard
+                    title="Avg. Order Value"
+                    value={stats?.smart_analysis?.average_sales ? `$${formatNumber(stats.smart_analysis.average_sales)}` : "-"}
+                    icon={Wallet}
+                    color="#06b6d4"
+                    subtitle="Average per transaction"
+                />
+
+                {/* NEW: Date Range Card */}
+                <KPICard
+                    title="Data Range"
+                    value={advancedStats?.date_span_days ? `${advancedStats.date_span_days} days` : (stats?.total_columns || 0) + " cols"}
+                    icon={Clock}
+                    color="#f97316"
+                    subtitle={advancedStats?.date_range_start ? `${advancedStats.date_range_start} to ${advancedStats.date_range_end}` : "Dataset span"}
+                />
+            </div>
+
+            {/* Charts Section - 2x2 Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {isWidgetEnabled("chart_sales_trend") && (
+                    <div className="p-6 rounded-2xl bg-card border border-border">
+                        <div className="flex items-center justify-between mb-6">
+                            <div>
+                                <h3 className="font-semibold text-foreground">
+                                    {stats?.smart_analysis?.identified_value_col || 'Sales'} Trend
+                                </h3>
+                                <p className="text-xs text-muted-foreground">
+                                    Performance over time
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs text-muted-foreground">12 months</span>
+                            </div>
+                        </div>
+                        <div className="h-[280px] w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={stats?.smart_analysis?.sales_over_time?.length ? stats.smart_analysis.sales_over_time : demoRevenueData}>
+                                    <defs>
+                                        <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#7c5cfc" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="#7c5cfc" stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#444" vertical={false} />
+                                    <XAxis
+                                        dataKey={stats?.smart_analysis?.sales_over_time?.length ? "date" : "month"}
+                                        stroke="#888"
+                                        fontSize={12}
+                                        tickLine={false}
+                                        axisLine={false}
+                                    />
+                                    <YAxis
+                                        stroke="#888"
+                                        fontSize={12}
+                                        tickLine={false}
+                                        axisLine={false}
+                                        tickFormatter={(value) => value >= 1000 ? `$${(value / 1000).toFixed(0)}k` : `$${value}`}
+                                    />
+                                    <Tooltip
+                                        contentStyle={{ backgroundColor: "#1e1e24", borderColor: "#555", borderRadius: "8px" }}
+                                        itemStyle={{ color: "#fff" }}
+                                        formatter={(value: any) => `$${Math.round(value).toLocaleString()}`}
+                                        labelStyle={{ color: "#aaa" }}
+                                    />
+                                    <Area
+                                        type="monotone"
+                                        dataKey={stats?.smart_analysis?.sales_over_time?.length ? "value" : "revenue"}
+                                        stroke="#7c5cfc"
+                                        strokeWidth={3}
+                                        fillOpacity={1}
+                                        fill="url(#colorValue)"
+                                    />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+                )}
+
+                {isWidgetEnabled("chart_category_distribution") && (
+                    <div className="p-6 rounded-2xl bg-card border border-border">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="font-semibold text-foreground">Category Distribution</h3>
+                            <span className="text-xs text-muted-foreground">Top categories</span>
+                        </div>
+                        <div className="h-[280px] w-full relative">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={stats?.smart_analysis?.top_categories?.length ? stats.smart_analysis.top_categories : demoCategoryData}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={60}
+                                        outerRadius={80}
+                                        paddingAngle={5}
+                                        dataKey="value"
+                                    >
+                                        {(stats?.smart_analysis?.top_categories || demoCategoryData).map((entry: any, index: number) => (
+                                            <Cell key={`cell-${index}`} fill={['#7c5cfc', '#5b8def', '#10b981', '#f59e0b', '#ec4899'][index % 5]} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip
+                                        formatter={(value: any) => Math.round(value).toLocaleString()}
+                                        contentStyle={{ backgroundColor: "#1e1e24", borderColor: "#555", borderRadius: "8px" }}
+                                        itemStyle={{ color: "#fff" }}
+                                    />
+                                </PieChart>
+                            </ResponsiveContainer>
+                            {/* Center Text */}
+                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                <span className="text-2xl font-bold text-foreground">
+                                    {advancedStats?.unique_categories || stats?.smart_analysis?.top_categories?.length || 4}
+                                </span>
+                                <span className="text-xs text-muted-foreground">Categories</span>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {isWidgetEnabled("chart_horizontal_ranking") && (
+                    <div className="lg:col-span-2 p-6 rounded-2xl bg-card border border-border">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="font-semibold text-foreground">Top Rankings</h3>
+                            <span className="text-xs text-muted-foreground">By revenue</span>
+                        </div>
+                        <div className="h-[280px] w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart
+                                    layout="vertical"
+                                    data={stats?.smart_analysis?.top_categories?.length ? stats.smart_analysis.top_categories.slice(0, 5) : demoCategoryData}
+                                    margin={{ top: 5, right: 30, left: 40, bottom: 5 }}
+                                >
+                                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#444" />
+                                    <XAxis type="number" stroke="#888" fontSize={12} tickLine={false} axisLine={false} />
+                                    <YAxis
+                                        dataKey="name"
+                                        type="category"
+                                        stroke="#888"
+                                        fontSize={12}
+                                        width={80}
+                                        tickLine={false}
+                                        axisLine={false}
+                                    />
+                                    <Tooltip
+                                        cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
+                                        contentStyle={{ backgroundColor: "#1e1e24", borderColor: "#555", borderRadius: "8px" }}
+                                        itemStyle={{ color: "#fff" }}
+                                        formatter={(value: any) => Math.round(value).toLocaleString()}
+                                    />
+                                    <Bar dataKey="value" fill="#ec4899" radius={[0, 4, 4, 0]} barSize={20} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* Bottom Row - Top Products & Quick Actions */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {isWidgetEnabled("list_top_products") && (
+                    <div className="p-6 rounded-2xl bg-card border border-border">
+                        <div className="flex items-center justify-between mb-6">
+                            <div>
+                                <h3 className="font-semibold text-foreground">Top Performing {stats?.smart_analysis?.identified_category_col || 'Products'}</h3>
+                                <p className="text-xs text-muted-foreground">Ranked by value</p>
+                            </div>
+                            <Link href="/datasets">
+                                <Button variant="ghost" size="sm">View All <ArrowUpRight className="ml-2 w-4 h-4" /></Button>
+                            </Link>
+                        </div>
+                        <div className="space-y-3">
+                            {(stats?.smart_analysis?.top_categories?.length ? stats.smart_analysis.top_categories : demoTopProducts).slice(0, 5).map((item: any, idx: number) => (
+                                <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">
+                                            #{idx + 1}
+                                        </div>
+                                        <div>
+                                            <p className="font-medium text-foreground text-sm">{item.name}</p>
+                                            <p className="text-xs text-muted-foreground">{item.category || "General"}</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="font-bold text-foreground">${(item.value || item.sales).toLocaleString()}</p>
+                                        {(item.growth !== undefined && item.growth !== null && item.growth !== 0) && (
+                                            <p className={`text-xs ${item.growth > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                                {item.growth > 0 ? '+' : ''}{item.growth}%
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
                             ))}
                         </div>
                     </div>
-                    <Link href="/insights">
-                        <Button variant="ghost" size="sm" className="text-[#7c5cfc] hover:text-white">
-                            View All <ChevronRight className="w-4 h-4 ml-1" />
-                        </Button>
-                    </Link>
-                </div>
-            </div>
-
-            {/* KPI Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                {[
-                    { label: "Total Revenue", value: "$4.2M", change: 18, icon: DollarSign, color: "#7c5cfc" },
-                    { label: "Total Profit", value: "$1.2M", change: 15, icon: TrendingUp, color: "#10b981" },
-                    { label: "Orders", value: "12,543", change: 8, icon: ShoppingCart, color: "#5b8def" },
-                    { label: isAdmin ? "Active Clients" : "Products", value: isAdmin ? "24" : "156", change: 12, icon: isAdmin ? Users : BarChart3, color: "#f59e0b" },
-                ].map((kpi, idx) => (
-                    <div key={idx} className="metric-card p-5">
-                        <div className="flex items-start justify-between mb-3">
-                            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${kpi.color}15` }}>
-                                <kpi.icon className="w-5 h-5" style={{ color: kpi.color }} />
-                            </div>
-                            <div className={`flex items-center gap-1 text-xs font-medium ${kpi.change >= 0 ? "text-emerald-400" : "text-red-400"}`}>
-                                {kpi.change >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                                {kpi.change >= 0 ? "+" : ""}{kpi.change}%
-                            </div>
-                        </div>
-                        <p className="text-2xl font-bold text-foreground">{kpi.value}</p>
-                        <p className="text-xs text-muted-foreground mt-1">{kpi.label}</p>
-                    </div>
-                ))}
-            </div>
-
-            {/* Charts Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Revenue Chart */}
-                <div className="lg:col-span-2 p-6 rounded-2xl bg-card border border-border">
-                    <div className="flex items-center justify-between mb-6">
-                        <div>
-                            <h3 className="font-semibold text-foreground">Revenue Overview</h3>
-                            <p className="text-xs text-muted-foreground">Monthly revenue and profit trends</p>
-                        </div>
-                        <div className="flex items-center gap-4 text-xs">
-                            <div className="flex items-center gap-2">
-                                <div className="w-3 h-3 rounded-full bg-primary" />
-                                <span className="text-muted-foreground">Revenue</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <div className="w-3 h-3 rounded-full bg-blue-500" />
-                                <span className="text-muted-foreground">Profit</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="h-[300px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={revenueData}>
-                                <defs>
-                                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#7c5cfc" stopOpacity={0.3} />
-                                        <stop offset="95%" stopColor="#7c5cfc" stopOpacity={0} />
-                                    </linearGradient>
-                                    <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#5b8def" stopOpacity={0.3} />
-                                        <stop offset="95%" stopColor="#5b8def" stopOpacity={0} />
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
-                                <XAxis dataKey="month" stroke="#52525b" fontSize={12} tickLine={false} axisLine={false} />
-                                <YAxis
-                                    stroke="#52525b"
-                                    fontSize={12}
-                                    tickLine={false}
-                                    axisLine={false}
-                                    tickFormatter={(value) => `$${value / 1000}K`}
-                                />
-                                <Tooltip
-                                    contentStyle={{
-                                        backgroundColor: '#13131a',
-                                        borderColor: '#27272a',
-                                        borderRadius: '12px',
-                                        color: '#fff'
-                                    }}
-                                    formatter={(value: number) => [formatCurrency(value), ""]}
-                                />
-                                <Area
-                                    type="monotone"
-                                    dataKey="revenue"
-                                    stroke="#7c5cfc"
-                                    strokeWidth={2}
-                                    fillOpacity={1}
-                                    fill="url(#colorRevenue)"
-                                />
-                                <Area
-                                    type="monotone"
-                                    dataKey="profit"
-                                    stroke="#5b8def"
-                                    strokeWidth={2}
-                                    fillOpacity={1}
-                                    fill="url(#colorProfit)"
-                                />
-                            </AreaChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
-
-                {/* Category Breakdown */}
-                <div className="p-6 rounded-2xl bg-card border border-border">
-                    <h3 className="font-semibold text-foreground mb-1">Sales by Category</h3>
-                    <p className="text-xs text-muted-foreground mb-6">Distribution across product categories</p>
-                    <div className="h-[180px] mb-4">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                                <Pie
-                                    data={categoryData}
-                                    cx="50%"
-                                    cy="50%"
-                                    innerRadius={50}
-                                    outerRadius={70}
-                                    paddingAngle={4}
-                                    dataKey="value"
-                                >
-                                    {categoryData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.color} />
-                                    ))}
-                                </Pie>
-                            </PieChart>
-                        </ResponsiveContainer>
-                    </div>
-                    <div className="space-y-2">
-                        {categoryData.map((cat, idx) => (
-                            <div key={idx} className="flex items-center justify-between text-sm">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-3 h-3 rounded-full" style={{ background: cat.color }} />
-                                    <span className="text-muted-foreground">{cat.name}</span>
-                                </div>
-                                <span className="text-foreground font-medium">{cat.value}%</span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-
-            {/* Bottom Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Top Products */}
-                <div className="p-6 rounded-2xl bg-card border border-border">
-                    <div className="flex items-center justify-between mb-6">
-                        <div>
-                            <h3 className="font-semibold text-foreground">Top Products</h3>
-                            <p className="text-xs text-muted-foreground">Best performing items</p>
-                        </div>
-                        <Link href="/datasets">
-                            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-                                View All
-                            </Button>
-                        </Link>
-                    </div>
-                    <div className="space-y-4">
-                        {topProducts.map((product, idx) => (
-                            <div key={idx} className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground">
-                                        #{idx + 1}
-                                    </div>
-                                    <span className="text-foreground font-medium">{product.name}</span>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                    <span className="text-muted-foreground">{product.sales.toLocaleString()} units</span>
-                                    <span className={`text-xs font-medium ${product.growth >= 0 ? "text-emerald-400" : "text-red-400"}`}>
-                                        {product.growth >= 0 ? "+" : ""}{product.growth}%
-                                    </span>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
+                )}
 
                 {/* Quick Actions */}
                 <div className="p-6 rounded-2xl bg-card border border-border">

@@ -16,8 +16,8 @@ router = APIRouter(
 
 @router.post("/upload", response_model=DatasetRead)
 async def upload_dataset(file: UploadFile = File(...), session: Session = Depends(get_session)):
-    if not file.filename.endswith('.csv'):
-        raise HTTPException(status_code=400, detail="Only CSV files are supported.")
+    if not (file.filename.endswith('.csv') or file.filename.endswith('.xlsx') or file.filename.endswith('.xls')):
+        raise HTTPException(status_code=400, detail="Only CSV and Excel files are supported.")
     
     file_path = f"uploads/{file.filename}"
     
@@ -27,7 +27,10 @@ async def upload_dataset(file: UploadFile = File(...), session: Session = Depend
             shutil.copyfileobj(file.file, buffer)
             
         # Analyze file basic stats
-        df = pd.read_csv(file_path)
+        if file.filename.endswith('.csv'):
+            df = pd.read_csv(file_path)
+        else:
+            df = pd.read_excel(file_path)
         total_rows, total_columns = df.shape
         file_size = os.path.getsize(file_path)
         
@@ -63,7 +66,10 @@ def get_dataset_content(dataset_id: int, limit: int = 50, offset: int = 0, sessi
          raise HTTPException(status_code=404, detail="File missing from disk")
          
     try:
-        df = pd.read_csv(dataset.file_path)
+        if dataset.filename.endswith('.csv'):
+            df = pd.read_csv(dataset.file_path)
+        else:
+            df = pd.read_excel(dataset.file_path)
         
         total_rows = len(df)
         chunk = df.iloc[offset : offset + limit].fillna("")

@@ -164,7 +164,7 @@ export default function ClientsPage() {
                                     type="text"
                                     value={newClientName}
                                     onChange={(e) => setNewClientName(e.target.value)}
-                                    placeholder="Acme Corporation"
+                                    placeholder="Altech"
                                     className="w-full px-4 py-2.5 rounded-xl bg-muted border border-border text-foreground placeholder:text-muted-foreground"
                                 />
                             </div>

@@ -2,6 +2,7 @@
 
 import { MobileSidebar } from "./Sidebar"
 import { Button } from "@/components/ui/button"
+import { ModifierKey } from "@/components/ui/modifier-key"
 import { Bell, Search, User, LogOut, ChevronDown } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { useState } from "react"
@@ -27,7 +28,7 @@ export function Header() {
                                 {isAdmin ? "Search clients, data..." : "Search your data..."}
                             </span>
                             <div className="ml-auto flex items-center gap-1 text-xs text-muted-foreground">
-                                <kbd className="px-1.5 py-0.5 rounded bg-white/5 border border-border">⌘</kbd>
+                                <kbd className="px-1.5 py-0.5 rounded bg-white/5 border border-border"><ModifierKey /></kbd>
                                 <kbd className="px-1.5 py-0.5 rounded bg-white/5 border border-border">K</kbd>
                             </div>
                         </button>

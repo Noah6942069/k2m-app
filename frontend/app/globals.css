@@ -296,6 +296,14 @@ select:focus {
   border-radius: 1.25rem;
   overflow: hidden;
   border: 1px solid var(--border);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: default;
+}
+
+.metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(124, 92, 252, 0.12);
+  border-color: rgba(124, 92, 252, 0.3);
 }
 
 .metric-card::before {

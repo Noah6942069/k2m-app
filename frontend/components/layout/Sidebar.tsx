@@ -18,8 +18,13 @@ import {
     ChevronLeft,
     ChevronRight,
     Users,
-    MessageSquareText
+    Building2,
+    MessageSquareText,
+    BarChart3,
+    Sparkles,
+    AlertTriangle
 } from "lucide-react"
+import { CommandMenu } from "./CommandMenu"
 
 // Different nav items based on role
 const adminNavItems = [
@@ -28,6 +33,7 @@ const adminNavItems = [
     { href: "/datasets", label: "Data", icon: Database },
     { href: "/insights", label: "AI Insights", icon: MessageSquareText },
     { href: "/analysis", label: "Analysis", icon: Beaker },
+    { href: "/integrations", label: "Integrations", icon: Beaker }, // Using Beaker as placeholder or import Lucide icon
     { href: "/settings", label: "Settings", icon: Settings },
 ]
 
@@ -35,6 +41,10 @@ const clientNavItems = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/datasets", label: "My Data", icon: Database },
     { href: "/insights", label: "AI Insights", icon: MessageSquareText },
+    { href: "/chart-builder", label: "Chart Builder", icon: BarChart3 },
+    { href: "/data-story", label: "Data Story", icon: Sparkles },
+    { href: "/anomalies", label: "Anomalies", icon: AlertTriangle },
+    { href: "/integrations", label: "Integrations", icon: Beaker },
     { href: "/settings", label: "Settings", icon: Settings },
 ]
 
@@ -81,16 +91,28 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
 
             {/* Client Company Badge (for clients only) */}
             {!isAdmin && user?.companyName && !collapsed && (
-                <div className="px-4 py-3 border-b border-border">
-                    <div className="px-3 py-2 rounded-xl bg-primary/5 border border-primary/10">
-                        <p className="text-xs text-muted-foreground">Your Company</p>
-                        <p className="text-sm font-medium text-foreground truncate">{user.companyName}</p>
+                <div className="px-3 mb-4 mt-2">
+                    <div className="flex items-center gap-3 px-3 py-3 rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/10 shadow-sm">
+                        <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-background border border-primary/10 shadow-inner">
+                            <Building2 className="w-4 h-4 text-primary" />
+                        </div>
+                        <div className="flex flex-col gap-0.5">
+                            <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Workspace</span>
+                            <span className="text-sm font-bold text-foreground truncate max-w-[140px]">{user.companyName}</span>
+                        </div>
                     </div>
                 </div>
             )}
 
+            {/* Command Menu */}
+            {!collapsed && (
+                <div className="px-3 mb-2">
+                    <CommandMenu />
+                </div>
+            )}
+
             {/* Navigation */}
-            <nav className="flex-1 py-6 px-3 space-y-1 overflow-y-auto">
+            <nav className="flex-1 py-2 px-3 space-y-1 overflow-y-auto">
                 {navItems.map((item) => {
                     const isActive = pathname === item.href || pathname?.startsWith(item.href + "/")
                     const Icon = item.icon
@@ -168,6 +190,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                     )}
                 </button>
             </div>
+            {/* Bottom Actions / Stats */}
         </aside>
     )
 }

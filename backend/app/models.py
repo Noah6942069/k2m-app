@@ -35,3 +35,12 @@ class AnalysisLog(SQLModel, table=True):
     operation: str # e.g., "Clean Missing"
     details: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
+
+# Dashboard Preferences (For per-user widget customization)
+class DashboardPreference(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_email: str = Field(index=True)  # Use email as user identifier
+    widget_config: str  # JSON string: {"kpi_revenue": true, "chart_trend": false, ...}
+    layout_order: Optional[str] = None  # JSON array of widget order
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+

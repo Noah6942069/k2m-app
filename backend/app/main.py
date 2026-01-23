@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .database import engine, create_db_and_tables
-from .routers import datasets, visualizations, analytics
+from .routers import datasets, visualizations, analytics, preferences
 import os
 
 app = FastAPI(title="Data Analyst App API")
@@ -23,7 +23,9 @@ app.add_middleware(
 app.include_router(datasets.router)
 app.include_router(visualizations.router)
 app.include_router(analytics.router)
+app.include_router(preferences.router)
 
 @app.get("/")
 def read_root():
     return {"status": "ok", "message": "Data Analyst API is running with SQLite Persistence"}
+ 

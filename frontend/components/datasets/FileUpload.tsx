@@ -31,13 +31,18 @@ export function FileUpload({ onSuccess }: FileUploadProps) {
         e.preventDefault()
         setIsDragging(false)
         const droppedFile = e.dataTransfer.files[0]
-        if (droppedFile && (droppedFile.type === "text/csv" || droppedFile.name.endsWith(".csv"))) {
+        if (droppedFile && (
+            droppedFile.type === "text/csv" ||
+            droppedFile.name.endsWith(".csv") ||
+            droppedFile.name.endsWith(".xlsx") ||
+            droppedFile.name.endsWith(".xls")
+        )) {
             setFile(droppedFile)
             setStatus("idle")
             setMessage("")
         } else {
             setStatus("error")
-            setMessage("Please upload a valid CSV file.")
+            setMessage("Please upload a valid CSV or Excel file.")
         }
     }
 
@@ -117,7 +122,7 @@ export function FileUpload({ onSuccess }: FileUploadProps) {
                     id="file-upload"
                     type="file"
                     className="hidden"
-                    accept=".csv"
+                    accept=".csv,.xlsx,.xls"
                     onChange={handleFileChange}
                 />
 
@@ -159,7 +164,7 @@ export function FileUpload({ onSuccess }: FileUploadProps) {
                             </div>
                         ) : (
                             <p className="text-sm font-medium text-zinc-400">
-                                {isDragging ? "Drop your file here" : "Drop CSV file or click to browse"}
+                                {isDragging ? "Drop your file here" : "Drop CSV/Excel file or click to browse"}
                             </p>
                         )}
                         {file && (
