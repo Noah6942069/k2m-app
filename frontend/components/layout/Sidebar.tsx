@@ -22,7 +22,11 @@ import {
     MessageSquareText,
     BarChart3,
     Sparkles,
-    AlertTriangle
+    AlertTriangle,
+    ArrowLeftRight,
+    Target,
+    FileText,
+    Zap
 } from "lucide-react"
 import { CommandMenu } from "./CommandMenu"
 
@@ -33,7 +37,10 @@ const adminNavItems = [
     { href: "/datasets", label: "Data", icon: Database },
     { href: "/insights", label: "AI Insights", icon: MessageSquareText },
     { href: "/analysis", label: "Analysis", icon: Beaker },
-    { href: "/integrations", label: "Integrations", icon: Beaker }, // Using Beaker as placeholder or import Lucide icon
+    { href: "/compare", label: "Compare", icon: ArrowLeftRight },
+    { href: "/goals", label: "Goals", icon: Target },
+    { href: "/reports", label: "Reports", icon: FileText },
+    { href: "/integrations", label: "Integrations", icon: Zap },
     { href: "/settings", label: "Settings", icon: Settings },
 ]
 
@@ -42,9 +49,12 @@ const clientNavItems = [
     { href: "/datasets", label: "My Data", icon: Database },
     { href: "/insights", label: "AI Insights", icon: MessageSquareText },
     { href: "/chart-builder", label: "Chart Builder", icon: BarChart3 },
+    { href: "/compare", label: "Compare", icon: ArrowLeftRight },
+    { href: "/goals", label: "Goals", icon: Target },
     { href: "/data-story", label: "Data Story", icon: Sparkles },
     { href: "/anomalies", label: "Anomalies", icon: AlertTriangle },
-    { href: "/integrations", label: "Integrations", icon: Beaker },
+    { href: "/reports", label: "Reports", icon: FileText },
+    { href: "/integrations", label: "Integrations", icon: Zap },
     { href: "/settings", label: "Settings", icon: Settings },
 ]
 
@@ -63,42 +73,45 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         setMounted(true)
     }, [])
 
-    // Choose nav items based on role
     const navItems = isAdmin ? adminNavItems : clientNavItems
-
     const logoSrc = mounted && resolvedTheme === "light" ? "/logo-light.png" : "/k2m-logo-new.png"
 
     return (
         <aside
             className={cn(
                 "hidden md:flex flex-col h-screen bg-sidebar border-r border-border transition-all duration-300 sticky top-0",
-                collapsed ? "w-[72px]" : "w-[240px]"
+                "shadow-xl dark:shadow-2xl dark:shadow-black/20",
+                collapsed ? "w-[72px]" : "w-[260px]"
             )}
         >
-            {/* K2M Logo */}
+            {/* Logo Area */}
             <div className={cn(
                 "flex items-center h-16 px-4 border-b border-border",
                 collapsed ? "justify-center" : "gap-3"
             )}>
-                <Image
-                    src={logoSrc}
-                    alt="K2M"
-                    width={collapsed ? 36 : 120}
-                    height={36}
-                    className="object-contain"
-                />
+                <div className="relative">
+                    <Image
+                        src={logoSrc}
+                        alt="K2M"
+                        width={collapsed ? 36 : 120}
+                        height={36}
+                        className="object-contain transition-all duration-300"
+                    />
+                    {/* Subtle glow behind logo */}
+                    <div className="absolute inset-0 blur-xl opacity-30 bg-primary -z-10" />
+                </div>
             </div>
 
-            {/* Client Company Badge (for clients only) */}
+            {/* Client Company Badge */}
             {!isAdmin && user?.companyName && !collapsed && (
-                <div className="px-3 mb-4 mt-2">
-                    <div className="flex items-center gap-3 px-3 py-3 rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/10 shadow-sm">
-                        <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-background border border-primary/10 shadow-inner">
+                <div className="px-3 mb-2 mt-4">
+                    <div className="flex items-center gap-3 px-3 py-3 rounded-xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/10">
+                        <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary/20 border border-primary/20">
                             <Building2 className="w-4 h-4 text-primary" />
                         </div>
-                        <div className="flex flex-col gap-0.5">
+                        <div className="flex flex-col gap-0.5 min-w-0">
                             <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Workspace</span>
-                            <span className="text-sm font-bold text-foreground truncate max-w-[140px]">{user.companyName}</span>
+                            <span className="text-sm font-semibold text-foreground truncate">{user.companyName}</span>
                         </div>
                     </div>
                 </div>
@@ -106,14 +119,14 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
 
             {/* Command Menu */}
             {!collapsed && (
-                <div className="px-3 mb-2">
+                <div className="px-3 mb-4 mt-2">
                     <CommandMenu />
                 </div>
             )}
 
             {/* Navigation */}
-            <nav className="flex-1 py-2 px-3 space-y-1 overflow-y-auto">
-                {navItems.map((item) => {
+            <nav className="flex-1 py-2 px-3 space-y-1 overflow-y-auto scrollbar-thin">
+                {navItems.map((item, index) => {
                     const isActive = pathname === item.href || pathname?.startsWith(item.href + "/")
                     const Icon = item.icon
 
@@ -124,27 +137,47 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                                     "group relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200",
                                     isActive
                                         ? "bg-primary/10 text-primary"
-                                        : "text-muted-foreground hover:text-foreground hover:bg-white/5 dark:hover:bg-white/5",
+                                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
                                     collapsed && "justify-center px-0"
                                 )}
+                                style={{
+                                    animationDelay: `${index * 30}ms`
+                                }}
                             >
-                                {/* Active Indicator */}
+                                {/* Active Indicator - Gradient pill */}
                                 {isActive && (
-                                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-[#7c5cfc] rounded-r-full" />
+                                    <div
+                                        className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full"
+                                        style={{ background: 'linear-gradient(180deg, #8b5cf6 0%, #6366f1 100%)' }}
+                                    />
                                 )}
 
-                                <Icon className={cn(
-                                    "w-5 h-5 transition-colors flex-shrink-0",
-                                    isActive ? "text-[#7c5cfc]" : "group-hover:text-zinc-300"
-                                )} />
+                                {/* Icon with subtle animation */}
+                                <div className={cn(
+                                    "relative transition-transform duration-200",
+                                    !collapsed && "group-hover:scale-110"
+                                )}>
+                                    <Icon className={cn(
+                                        "w-5 h-5 transition-colors flex-shrink-0",
+                                        isActive ? "text-primary" : "group-hover:text-primary"
+                                    )} />
+                                    {isActive && (
+                                        <div className="absolute inset-0 blur-md opacity-50 bg-primary" />
+                                    )}
+                                </div>
 
                                 {!collapsed && (
-                                    <span className="font-medium text-sm">{item.label}</span>
+                                    <span className={cn(
+                                        "font-medium text-sm transition-colors",
+                                        isActive && "font-semibold"
+                                    )}>
+                                        {item.label}
+                                    </span>
                                 )}
 
                                 {/* Tooltip for collapsed mode */}
                                 {collapsed && (
-                                    <div className="absolute left-full ml-2 px-2 py-1 bg-zinc-900 text-white text-xs rounded-md opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 border border-white/10">
+                                    <div className="absolute left-full ml-3 px-3 py-1.5 bg-popover text-popover-foreground text-xs font-medium rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 shadow-lg border border-border">
                                         {item.label}
                                     </div>
                                 )}
@@ -158,14 +191,19 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
             {!collapsed && (
                 <div className="px-3 pb-3">
                     <Link href="/insights">
-                        <div className="p-3 rounded-xl bg-gradient-to-r from-primary/10 to-blue-500/10 border border-primary/20 hover:border-primary/40 transition-colors">
-                            <div className="flex items-center gap-2 mb-1">
-                                <div className="w-6 h-6 rounded-lg bg-primary/20 flex items-center justify-center">
-                                    <MessageSquareText className="w-3.5 h-3.5 text-primary" />
+                        <div className="relative overflow-hidden p-4 rounded-xl bg-gradient-to-br from-primary/15 via-primary/10 to-blue-500/10 border border-primary/20 hover:border-primary/40 transition-all duration-300 group">
+                            {/* Animated gradient background */}
+                            <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/10 to-primary/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+
+                            <div className="relative flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                                    <MessageSquareText className="w-5 h-5 text-primary" />
                                 </div>
-                                <span className="text-xs font-medium text-foreground">AI Assistant</span>
+                                <div>
+                                    <span className="text-sm font-semibold text-foreground block">AI Assistant</span>
+                                    <p className="text-[10px] text-muted-foreground">Ask questions about your data</p>
+                                </div>
                             </div>
-                            <p className="text-[10px] text-muted-foreground">Ask questions about your data</p>
                         </div>
                     </Link>
                 </div>
@@ -176,7 +214,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                 <button
                     onClick={onToggle}
                     className={cn(
-                        "w-full flex items-center justify-center gap-2 py-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors",
+                        "w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-200",
                         collapsed ? "px-0" : "px-3"
                     )}
                 >
@@ -185,12 +223,11 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                     ) : (
                         <>
                             <ChevronLeft className="w-4 h-4" />
-                            <span className="text-sm">Collapse</span>
+                            <span className="text-sm font-medium">Collapse</span>
                         </>
                     )}
                 </button>
             </div>
-            {/* Bottom Actions / Stats */}
         </aside>
     )
 }
@@ -211,7 +248,7 @@ export function MobileSidebar() {
     return (
         <Sheet>
             <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden text-zinc-400 hover:text-white">
+                <Button variant="ghost" size="icon" className="md:hidden text-muted-foreground hover:text-foreground">
                     <Menu className="w-5 h-5" />
                 </Button>
             </SheetTrigger>
@@ -232,15 +269,15 @@ export function MobileSidebar() {
                 {/* Client Company Badge */}
                 {!isAdmin && user?.companyName && (
                     <div className="px-4 py-3 border-b border-border">
-                        <div className="px-3 py-2 rounded-xl bg-primary/5 border border-primary/10">
+                        <div className="px-3 py-2.5 rounded-xl bg-primary/5 border border-primary/10">
                             <p className="text-xs text-muted-foreground">Your Company</p>
-                            <p className="text-sm font-medium text-foreground">{user.companyName}</p>
+                            <p className="text-sm font-semibold text-foreground">{user.companyName}</p>
                         </div>
                     </div>
                 )}
 
                 {/* Navigation */}
-                <nav className="py-6 px-4 space-y-1">
+                <nav className="py-4 px-4 space-y-1">
                     {navItems.map((item) => {
                         const isActive = pathname === item.href
                         const Icon = item.icon
@@ -252,11 +289,14 @@ export function MobileSidebar() {
                                         "relative flex items-center gap-3 px-4 py-3 rounded-xl transition-all",
                                         isActive
                                             ? "bg-primary/10 text-primary"
-                                            : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+                                            : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                                     )}
                                 >
                                     {isActive && (
-                                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-[#7c5cfc] rounded-r-full" />
+                                        <div
+                                            className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full"
+                                            style={{ background: 'linear-gradient(180deg, #8b5cf6 0%, #6366f1 100%)' }}
+                                        />
                                     )}
                                     <Icon className="w-5 h-5" />
                                     <span className="font-medium">{item.label}</span>

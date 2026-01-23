@@ -6,34 +6,44 @@ import { BarChart3, Lightbulb, Database } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
+import { PageHeaderWithSelector } from "@/components/common/PageHeaderWithSelector"
+
 export default function VisualizationsPage() {
     const [datasets, setDatasets] = useState<any[]>([])
-
-    const fetchDatasets = async () => {
-        try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/datasets/`)
-            if (res.ok) {
-                const data = await res.json()
-                setDatasets(data)
-            }
-        } catch (error) {
-            console.error("Failed to fetch datasets", error)
-        }
-    }
+    const [selectedDatasetId, setSelectedDatasetId] = useState<string | null>(null)
+    const [loading, setLoading] = useState(true)
 
     useEffect(() => {
+        const fetchDatasets = async () => {
+            try {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/datasets/`)
+                if (res.ok) {
+                    const data = await res.json()
+                    setDatasets(data)
+                    if (data.length > 0) {
+                        setSelectedDatasetId(String(data[data.length - 1].id))
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to fetch datasets", error)
+            } finally {
+                setLoading(false)
+            }
+        }
         fetchDatasets()
     }, [])
 
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-white">Visualizations</h1>
-                    <p className="text-zinc-500">Create interactive charts from your datasets</p>
-                </div>
-            </div>
+            <PageHeaderWithSelector
+                title="Visualizations"
+                description="Create interactive charts from your datasets"
+                datasets={datasets}
+                selectedId={selectedDatasetId}
+                onSelect={setSelectedDatasetId}
+                loading={loading}
+            />
 
             {/* Empty State */}
             {datasets.length === 0 ? (
@@ -65,7 +75,7 @@ export default function VisualizationsPage() {
                     </div>
 
                     {/* Chart Generator */}
-                    <ChartGenerator datasets={datasets} />
+                    <ChartGenerator datasets={datasets} selectedDatasetId={selectedDatasetId} />
                 </>
             )}
         </div>

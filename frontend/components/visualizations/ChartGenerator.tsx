@@ -23,10 +23,10 @@ import { Button } from "@/components/ui/button"
 
 interface ChartGeneratorProps {
     datasets: any[]
+    selectedDatasetId: string | null
 }
 
-export function ChartGenerator({ datasets }: ChartGeneratorProps) {
-    const [selectedDataset, setSelectedDataset] = useState<string>("")
+export function ChartGenerator({ datasets, selectedDatasetId }: ChartGeneratorProps) {
     const [chartType, setChartType] = useState<string>("bar")
     const [xAxis, setXAxis] = useState<string>("")
     const [yAxis, setYAxis] = useState<string>("")
@@ -42,10 +42,10 @@ export function ChartGenerator({ datasets }: ChartGeneratorProps) {
         setYAxis("")
         setChartData(null)
         setColumns([])
-        if (selectedDataset) {
-            fetchColumns(selectedDataset)
+        if (selectedDatasetId) {
+            fetchColumns(selectedDatasetId)
         }
-    }, [selectedDataset])
+    }, [selectedDatasetId])
 
     const fetchColumns = async (id: string) => {
         try {
@@ -60,12 +60,12 @@ export function ChartGenerator({ datasets }: ChartGeneratorProps) {
     }
 
     const generateChart = async () => {
-        if (!selectedDataset || !xAxis) return
+        if (!selectedDatasetId || !xAxis) return
 
         setLoading(true)
         setError("")
         try {
-            let url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/visualizations/dataset/${selectedDataset}/generate?type=${chartType}&x_axis=${xAxis}`
+            let url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/visualizations/dataset/${selectedDatasetId}/generate?type=${chartType}&x_axis=${xAxis}`
             if (yAxis && yAxis !== "count_ops") url += `&y_axis=${yAxis}`
 
             const res = await fetch(url)
@@ -91,19 +91,7 @@ export function ChartGenerator({ datasets }: ChartGeneratorProps) {
                     <CardDescription className="text-zinc-500">Select parameters to visualize</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-zinc-300">Dataset</label>
-                        <Select onValueChange={setSelectedDataset} value={selectedDataset}>
-                            <SelectTrigger className="bg-zinc-900 border-zinc-800 text-white">
-                                <SelectValue placeholder="Select dataset" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
-                                {datasets.map((ds) => (
-                                    <SelectItem key={ds.id} value={String(ds.id)}>{ds.filename}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
+                    {/* Dataset selection handled globally now */}
 
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-zinc-300">Chart Type</label>
@@ -120,7 +108,7 @@ export function ChartGenerator({ datasets }: ChartGeneratorProps) {
 
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-zinc-300">X Axis (Category)</label>
-                        <Select onValueChange={setXAxis} value={xAxis} disabled={!selectedDataset}>
+                        <Select onValueChange={setXAxis} value={xAxis} disabled={!selectedDatasetId}>
                             <SelectTrigger className="bg-zinc-900 border-zinc-800 text-white">
                                 <SelectValue placeholder="Select column" />
                             </SelectTrigger>
@@ -134,7 +122,7 @@ export function ChartGenerator({ datasets }: ChartGeneratorProps) {
 
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-zinc-300">Y Axis (Value) - Optional</label>
-                        <Select onValueChange={setYAxis} value={yAxis} disabled={!selectedDataset}>
+                        <Select onValueChange={setYAxis} value={yAxis} disabled={!selectedDatasetId}>
                             <SelectTrigger className="bg-zinc-900 border-zinc-800 text-white">
                                 <SelectValue placeholder="Count (Default)" />
                             </SelectTrigger>
@@ -149,7 +137,7 @@ export function ChartGenerator({ datasets }: ChartGeneratorProps) {
 
                     <Button
                         onClick={generateChart}
-                        disabled={!selectedDataset || !xAxis || loading}
+                        disabled={!selectedDatasetId || !xAxis || loading}
                         className="w-full h-12 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-medium"
                     >
                         {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

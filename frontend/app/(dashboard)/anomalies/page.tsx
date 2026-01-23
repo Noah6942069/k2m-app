@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { AlertTriangle, ArrowDown, ArrowUp, Zap, CheckCircle, ShieldAlert, Activity, Bell, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { PageHeaderWithSelector } from "@/components/common/PageHeaderWithSelector"
 
 interface Anomaly {
     id: string
@@ -34,42 +35,63 @@ export default function AnomaliesPage() {
     const [loading, setLoading] = useState(true)
     const [datasetName, setDatasetName] = useState<string>("")
 
+    // Dataset Selector State
+    const [datasets, setDatasets] = useState<any[]>([])
+    const [selectedDatasetId, setSelectedDatasetId] = useState<string | null>(null)
+    const [loadingData, setLoadingData] = useState(false)
+
+    // 1. Load Datasets
     useEffect(() => {
-        const loadAnomalies = async () => {
+        const fetchDatasets = async () => {
             try {
-                // First get the latest dataset
                 const dsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/datasets/`)
                 if (dsRes.ok) {
-                    const datasets = await dsRes.json()
-                    if (datasets.length > 0) {
-                        const latest = datasets[datasets.length - 1]
-                        setDatasetName(latest.filename)
-
-                        // Fetch anomalies for this dataset
-                        const anomalyRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/analytics/${latest.id}/anomalies`)
-                        if (anomalyRes.ok) {
-                            const data = await anomalyRes.json()
-                            if (data.anomalies && data.anomalies.length > 0) {
-                                setAnomalies(data.anomalies)
-                            } else {
-                                setAnomalies(demoAnomalies)
-                            }
-                        } else {
-                            setAnomalies(demoAnomalies)
-                        }
-                    } else {
-                        setAnomalies(demoAnomalies)
+                    const data = await dsRes.json()
+                    setDatasets(data)
+                    if (data.length > 0) {
+                        setSelectedDatasetId(String(data[data.length - 1].id))
                     }
                 }
             } catch (error) {
-                console.error("Failed to load anomalies", error)
-                setAnomalies(demoAnomalies)
+                console.error("Failed to load datasets", error)
             } finally {
                 setLoading(false)
             }
         }
-        loadAnomalies()
+        fetchDatasets()
     }, [])
+
+    // 2. Fetch Anomalies for selected dataset
+    useEffect(() => {
+        const loadAnomalies = async () => {
+            if (!selectedDatasetId) return
+            setLoadingData(true)
+
+            try {
+                // Find name for header
+                const selected = datasets.find(d => String(d.id) === selectedDatasetId)
+                if (selected) setDatasetName(selected.filename)
+
+                const anomalyRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/analytics/${selectedDatasetId}/anomalies`)
+                if (anomalyRes.ok) {
+                    const data = await anomalyRes.json()
+                    if (data.anomalies && data.anomalies.length > 0) {
+                        setAnomalies(data.anomalies)
+                    } else {
+                        setAnomalies(demoAnomalies)
+                    }
+                } else {
+                    setAnomalies(demoAnomalies)
+                }
+            } catch (e) {
+                console.error(e)
+                setAnomalies(demoAnomalies)
+            } finally {
+                setLoadingData(false)
+            }
+        }
+        loadAnomalies()
+    }, [selectedDatasetId, datasets])
 
     const resolveAnomaly = (id: string) => {
         setAnomalies(prev => prev.map(a => a.id === id ? { ...a, status: "resolved" } : a))
@@ -82,7 +104,7 @@ export default function AnomaliesPage() {
             <div className="flex h-[60vh] items-center justify-center">
                 <div className="flex flex-col items-center gap-4">
                     <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                    <p className="text-muted-foreground">Analyzing data for anomalies...</p>
+                    <p className="text-muted-foreground">Loading specific dataset...</p>
                 </div>
             </div>
         )
@@ -91,19 +113,22 @@ export default function AnomaliesPage() {
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold text-foreground">Smart Anomaly Detection</h1>
-                    <p className="text-muted-foreground mt-2">
-                        AI-powered monitoring of your critical business metrics.
-                    </p>
-                </div>
-                <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-card border border-border">
-                    <div className={`w-3 h-3 rounded-full ${unresolvedCount > 0 ? "bg-red-500 animate-pulse" : "bg-green-500"}`} />
-                    <span className="font-medium text-foreground">
-                        {unresolvedCount > 0 ? `${unresolvedCount} Active Alerts` : "All Systems Normal"}
-                    </span>
-                </div>
+            <div className="flex flex-col gap-6">
+                <PageHeaderWithSelector
+                    title="Smart Anomaly Detection"
+                    description="AI-powered monitoring of your critical business metrics."
+                    datasets={datasets}
+                    selectedId={selectedDatasetId}
+                    onSelect={setSelectedDatasetId}
+                    loading={loadingData}
+                />
+            </div>
+
+            <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-card border border-border w-fit">
+                <div className={`w-3 h-3 rounded-full ${unresolvedCount > 0 ? "bg-red-500 animate-pulse" : "bg-green-500"}`} />
+                <span className="font-medium text-foreground">
+                    {unresolvedCount > 0 ? `${unresolvedCount} Active Alerts` : "All Systems Normal"}
+                </span>
             </div>
 
             {/* Main Content */}

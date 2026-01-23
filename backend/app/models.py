@@ -1,8 +1,16 @@
+"""
+K2M Analytics - Database Models
+================================
+SQLModel ORM models for database tables.
+These define the structure of data persisted to SQLite.
+"""
+
 from typing import Optional, List
 from sqlmodel import Field, SQLModel
 from datetime import datetime
 
-# Shared Properties
+
+# ============ Dataset Models ============
 class DatasetBase(SQLModel):
     filename: str
     file_path: str
@@ -18,6 +26,9 @@ class Dataset(DatasetBase, table=True):
 # API Response
 class DatasetRead(DatasetBase):
     id: int
+
+class DatasetUpdate(SQLModel):
+    filename: Optional[str] = None
 
 # Visualization Model (For saving charts later)
 class Visualization(SQLModel, table=True):

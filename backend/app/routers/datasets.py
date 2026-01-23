@@ -6,13 +6,44 @@ import pandas as pd
 import shutil
 import os
 from ..database import get_session
-from ..models import Dataset, DatasetRead
+from ..models import Dataset, DatasetRead, DatasetUpdate
 from ..schemas import AnalysisResult
-
 router = APIRouter(
     prefix="/datasets",
     tags=["datasets"]
 )
+
+@router.patch("/{dataset_id}", response_model=DatasetRead)
+def update_dataset(dataset_id: int, dataset_update: DatasetUpdate, session: Session = Depends(get_session)):
+    dataset = session.get(Dataset, dataset_id)
+    if not dataset:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+    
+    if dataset_update.filename:
+        # Rename file on disk if needed
+        if dataset_update.filename != dataset.filename:
+            old_path = dataset.file_path
+            new_filename = dataset_update.filename
+            if not new_filename.endswith(('.csv', '.xlsx', '.xls')):
+                 # append extension from old filename if missing
+                 ext = os.path.splitext(dataset.filename)[1]
+                 new_filename += ext
+            
+            new_path = os.path.join(os.path.dirname(old_path), new_filename)
+            
+            try:
+                if os.path.exists(old_path):
+                    os.rename(old_path, new_path)
+                    dataset.file_path = new_path
+            except OSError as e:
+                raise HTTPException(status_code=500, detail=f"Failed to rename file: {e}")
+            
+            dataset.filename = new_filename
+
+    session.add(dataset)
+    session.commit()
+    session.refresh(dataset)
+    return dataset
 
 @router.post("/upload", response_model=DatasetRead)
 async def upload_dataset(file: UploadFile = File(...), session: Session = Depends(get_session)):

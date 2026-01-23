@@ -4,7 +4,6 @@ import { FileUpload } from "@/components/datasets/FileUpload"
 import { useEffect, useState } from "react"
 import {
     Database,
-    Calendar,
     MoreHorizontal,
     Trash2,
     Download,
@@ -14,10 +13,12 @@ import {
     Search,
     Plus,
     FileSpreadsheet,
-    ArrowUpRight
+    Edit
 } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
 
 export default function DatasetsPage() {
     const [datasets, setDatasets] = useState<any[]>([])
@@ -25,6 +26,34 @@ export default function DatasetsPage() {
     const [searchQuery, setSearchQuery] = useState("")
     const [showUpload, setShowUpload] = useState(false)
     const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null)
+
+    // Rename State
+    const [renamingId, setRenamingId] = useState<number | null>(null)
+    const [newName, setNewName] = useState("")
+
+    const startRename = (dataset: any) => {
+        setRenamingId(dataset.id)
+        setNewName(dataset.filename)
+    }
+
+    const handleRename = async () => {
+        if (!renamingId || !newName.trim()) return
+
+        try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/datasets/${renamingId}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ filename: newName })
+            })
+
+            if (res.ok) {
+                setDatasets(datasets.map(d => d.id === renamingId ? { ...d, filename: newName } : d))
+                setRenamingId(null)
+            }
+        } catch (error) {
+            console.error("Failed to rename dataset", error)
+        }
+    }
 
     const fetchDatasets = async () => {
         try {
@@ -63,15 +92,6 @@ export default function DatasetsPage() {
     const filteredDatasets = datasets.filter(ds =>
         ds.filename.toLowerCase().includes(searchQuery.toLowerCase())
     )
-
-    const formatDate = (dateStr: string) => {
-        try {
-            const date = new Date(dateStr)
-            return date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
-        } catch {
-            return "Recently"
-        }
-    }
 
     const formatFileSize = (bytes: number) => {
         if (!bytes) return "—"
@@ -212,6 +232,14 @@ export default function DatasetsPage() {
                                 <Button
                                     variant="ghost"
                                     size="sm"
+                                    className="text-muted-foreground hover:text-foreground hover:bg-muted"
+                                    onClick={() => startRename(ds)}
+                                >
+                                    <Edit className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
                                     className="text-muted-foreground hover:text-red-400 hover:bg-red-500/10"
                                     onClick={() => setDeleteConfirm(ds.id)}
                                 >
@@ -299,6 +327,14 @@ export default function DatasetsPage() {
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
+                                                className="text-zinc-400 hover:text-white"
+                                                onClick={() => startRename(ds)}
+                                            >
+                                                <Edit className="w-4 h-4" />
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
                                                 className="text-zinc-400 hover:text-red-400"
                                                 onClick={() => deleteDataset(ds.id)}
                                             >
@@ -312,6 +348,32 @@ export default function DatasetsPage() {
                     </table>
                 </div>
             )}
+
+            {/* Rename Dialog */}
+            <Dialog open={!!renamingId} onOpenChange={(open) => !open && setRenamingId(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Rename Dataset</DialogTitle>
+                        <DialogDescription>
+                            Enter a new name for your dataset. The file extension will be preserved.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4">
+                        <Input
+                            value={newName}
+                            onChange={(e) => setNewName(e.target.value)}
+                            placeholder="New dataset name"
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") handleRename()
+                            }}
+                        />
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setRenamingId(null)}>Cancel</Button>
+                        <Button onClick={handleRename}>Save Changes</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }

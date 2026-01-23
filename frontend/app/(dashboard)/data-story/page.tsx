@@ -1,9 +1,11 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { Sparkles, ArrowRight, Download, Share2, Printer, TrendingUp, TrendingDown, AlertTriangle, CheckCircle2, Loader2 } from "lucide-react"
+import { Sparkles, ArrowRight, Download, Share2, Printer, TrendingUp, TrendingDown, AlertTriangle, CheckCircle2, Loader2, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar } from "recharts"
+
+import { PageHeaderWithSelector } from "@/components/common/PageHeaderWithSelector"
 
 export default function DataStoryPage() {
     const [isGenerating, setIsGenerating] = useState(false)
@@ -13,19 +15,21 @@ export default function DataStoryPage() {
     const [isExporting, setIsExporting] = useState(false)
     const storyRef = useRef<HTMLDivElement>(null)
 
+    // Dataset Selector State
+    const [datasets, setDatasets] = useState<any[]>([])
+    const [selectedDatasetId, setSelectedDatasetId] = useState<string | null>(null)
+    const [loadingStats, setLoadingStats] = useState(false)
+
+    // 1. Initial Load
     useEffect(() => {
-        const loadData = async () => {
+        const loadInitial = async () => {
             try {
                 const dsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/datasets/`)
                 if (dsRes.ok) {
                     const data = await dsRes.json()
+                    setDatasets(data)
                     if (data.length > 0) {
-                        const latest = data[data.length - 1]
-                        const statsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/analytics/${latest.id}/stats`)
-                        if (statsRes.ok) {
-                            const statsData = await statsRes.json()
-                            setStats(statsData)
-                        }
+                        setSelectedDatasetId(String(data[data.length - 1].id))
                     }
                 }
             } catch (error) {
@@ -34,8 +38,25 @@ export default function DataStoryPage() {
                 setLoading(false)
             }
         }
-        loadData()
+        loadInitial()
     }, [])
+
+    // 2. Fetch Stats on Selection Change
+    useEffect(() => {
+        const fetchStats = async () => {
+            if (!selectedDatasetId) return
+            setLoadingStats(true)
+            try {
+                const statsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/analytics/${selectedDatasetId}/stats`)
+                if (statsRes.ok) {
+                    const statsData = await statsRes.json()
+                    setStats(statsData)
+                }
+            } catch (e) { console.error(e) }
+            finally { setLoadingStats(false) }
+        }
+        fetchStats()
+    }, [selectedDatasetId])
 
     const generateDynamicStory = () => {
         if (!stats) return []
@@ -131,11 +152,47 @@ export default function DataStoryPage() {
     return (
         <div className="max-w-4xl mx-auto px-4 py-8 animate-in slide-in-from-bottom-10 duration-700">
             {/* Header Actions */}
-            <div className="flex items-center justify-between mb-12">
+            <div className="flex flex-col gap-6 mb-12">
+                <PageHeaderWithSelector
+                    title="Generate Data Story"
+                    description="Turn your complex data dashboards into a clear, narrative-driven report that tells the story behind the numbers."
+                    datasets={datasets}
+                    selectedId={selectedDatasetId}
+                    onSelect={setSelectedDatasetId}
+                    loading={loadingStats}
+                />
+            </div>
+
+            <div className="flex items-center justify-between">
                 <Button variant="ghost" onClick={() => setShowStory(false)} className="text-muted-foreground hover:text-foreground">
                     ← Back to Generator
                 </Button>
                 <div className="flex gap-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                            if (!storyRef.current || !stats) return
+                            const report = {
+                                id: crypto.randomUUID(),
+                                title: `Analysis: ${stats.filename}`,
+                                date: Date.now(),
+                                datasetName: stats.filename,
+                                datasetId: stats.id,
+                                summary: "AI Generated Data Story",
+                                content: storyRef.current.innerHTML
+                            }
+
+                            const saved = localStorage.getItem("k2m-saved-reports")
+                            const reports = saved ? JSON.parse(saved) : []
+                            reports.push(report)
+                            localStorage.setItem("k2m-saved-reports", JSON.stringify(reports))
+                            alert("Report saved to library!")
+                        }}
+                    >
+                        <FileText className="w-4 h-4 mr-2" />
+                        Save to Library
+                    </Button>
                     <Button variant="outline" size="sm" onClick={() => window.print()}>
                         <Printer className="w-4 h-4 mr-2" />
                         Print

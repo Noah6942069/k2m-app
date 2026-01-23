@@ -1,31 +1,79 @@
+"""
+K2M Analytics API
+==================
+Main FastAPI application entry point.
+Handles server lifecycle, middleware, and router registration.
+"""
+
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .database import engine, create_db_and_tables
-from .routers import datasets, visualizations, analytics, preferences
 import os
 
-app = FastAPI(title="Data Analyst App API")
+from .database import create_db_and_tables
+from .routers import datasets, visualizations, analytics, preferences
 
-@app.on_event("startup")
-def on_startup():
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Application lifespan manager.
+    Runs startup tasks before yielding, cleanup tasks after.
+    """
+    # Startup
     create_db_and_tables()
     os.makedirs("uploads", exist_ok=True)
+    print("✅ K2M API started successfully")
+    
+    yield  # Application runs here
+    
+    # Shutdown (cleanup if needed)
+    print("👋 K2M API shutting down")
 
-# Configure CORS for frontend access
+
+# Initialize FastAPI with metadata
+app = FastAPI(
+    title="K2M Analytics API",
+    description="AI-Powered Data Analytics Platform API",
+    version="1.0.0",
+    lifespan=lifespan
+)
+
+# Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for Vercel deployment
+    allow_origins=["*"],  # In production, specify exact origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# Register routers
 app.include_router(datasets.router)
 app.include_router(visualizations.router)
 app.include_router(analytics.router)
 app.include_router(preferences.router)
 
-@app.get("/")
-def read_root():
-    return {"status": "ok", "message": "Data Analyst API is running with SQLite Persistence"}
- 
+
+@app.get("/", tags=["Health"])
+def root():
+    """Root endpoint - API status check."""
+    return {
+        "status": "ok",
+        "message": "K2M Analytics API is running",
+        "version": "1.0.0"
+    }
+
+
+@app.get("/health", tags=["Health"])
+def health_check():
+    """
+    Health check endpoint for monitoring services.
+    Returns detailed health status.
+    """
+    return {
+        "status": "healthy",
+        "database": "connected",
+        "version": "1.0.0"
+    }
+

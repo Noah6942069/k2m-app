@@ -2,6 +2,7 @@
 
 import { useTheme } from "next-themes"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
+import { ThemeSelector } from "@/components/ui/theme-selector"
 import { useState, useEffect } from "react"
 import {
     Settings as SettingsIcon,
@@ -15,7 +16,8 @@ import {
     BarChart3,
     Beaker,
     Users,
-    Sparkles
+    Sparkles,
+    Palette
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -125,6 +127,11 @@ export default function SettingsPage() {
                         </span>
                     </div>
                 </div>
+            </div>
+
+            {/* Color Scheme */}
+            <div className="rounded-2xl bg-card border border-border p-5">
+                <ThemeSelector />
             </div>
 
             {/* Data Management */}

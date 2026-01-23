@@ -62,6 +62,8 @@ const generateInsights = (): Insight[] => [
     }
 ]
 
+import { PageHeaderWithSelector } from "@/components/common/PageHeaderWithSelector"
+
 export default function InsightsPage() {
     const [messages, setMessages] = useState<Message[]>([])
     const [input, setInput] = useState("")
@@ -71,23 +73,25 @@ export default function InsightsPage() {
     const [copied, setCopied] = useState<string | null>(null)
     const messagesEndRef = useRef<HTMLDivElement>(null)
 
+    // Dataset Selector State
+    const [datasets, setDatasets] = useState<any[]>([])
+    const [selectedDatasetId, setSelectedDatasetId] = useState<string | null>(null)
+    const [loadingStats, setLoadingStats] = useState(false)
+
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
     }, [messages])
 
+    // 1. Initial Load
     useEffect(() => {
-        const loadData = async () => {
+        const loadInitial = async () => {
             try {
                 const dsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/datasets/`)
                 if (dsRes.ok) {
                     const data = await dsRes.json()
+                    setDatasets(data)
                     if (data.length > 0) {
-                        const latest = data[data.length - 1]
-                        const statsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/analytics/${latest.id}/stats`)
-                        if (statsRes.ok) {
-                            const statsData = await statsRes.json()
-                            setStats(statsData)
-                        }
+                        setSelectedDatasetId(String(data[data.length - 1].id))
                     }
                 }
             } catch (error) {
@@ -96,8 +100,26 @@ export default function InsightsPage() {
                 setLoading(false)
             }
         }
-        loadData()
+        loadInitial()
     }, [])
+
+    // 2. Fetch Stats on Selection Change
+    useEffect(() => {
+        const fetchStats = async () => {
+            if (!selectedDatasetId) return
+            setLoadingStats(true)
+            setMessages([]) // Clear chat history on dataset switch
+            try {
+                const statsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/analytics/${selectedDatasetId}/stats`)
+                if (statsRes.ok) {
+                    const statsData = await statsRes.json()
+                    setStats(statsData)
+                }
+            } catch (e) { console.error(e) }
+            finally { setLoadingStats(false) }
+        }
+        fetchStats()
+    }, [selectedDatasetId])
 
     const getDynamicInsights = (): Insight[] => {
         if (!stats?.smart_analysis?.insights) return generateInsights() // Fallback
@@ -241,6 +263,15 @@ export default function InsightsPage() {
             <div className="flex-1 flex flex-col rounded-2xl bg-card border border-border overflow-hidden">
                 {/* Chat Header */}
                 <div className="p-4 border-b border-border flex flex-col gap-4">
+                    <PageHeaderWithSelector
+                        title="AI Assistant"
+                        description="Analyze your data and get instant answers."
+                        datasets={datasets}
+                        selectedId={selectedDatasetId}
+                        onSelect={setSelectedDatasetId}
+                        loading={loadingStats}
+                    />
+
                     {/* Insights Ticker */}
                     <div className="p-3 rounded-xl bg-gradient-to-r from-[#7c5cfc]/10 to-[#5b8def]/10 border border-[#7c5cfc]/20 flex items-center gap-4 overflow-hidden">
                         <div className="flex-shrink-0 flex items-center gap-2 px-2 border-r border-[#7c5cfc]/20">
@@ -259,16 +290,6 @@ export default function InsightsPage() {
                                     </span>
                                 </div>
                             ))}
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center ai-pulse">
-                            <Sparkles className="w-5 h-5 text-white" />
-                        </div>
-                        <div>
-                            <h2 className="font-semibold text-foreground">K2M AI Assistant</h2>
-                            <p className="text-xs text-muted-foreground">Ask questions about your data</p>
                         </div>
                     </div>
                 </div>
