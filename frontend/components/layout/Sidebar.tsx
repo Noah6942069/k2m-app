@@ -26,13 +26,17 @@ import {
     ArrowLeftRight,
     Target,
     FileText,
-    Zap
+    Zap,
+    Home,
+    PieChart
 } from "lucide-react"
 import { CommandMenu } from "./CommandMenu"
 
 // Different nav items based on role
 const adminNavItems = [
-    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/dashboard", label: "Home", icon: Home },
+    { href: "/overview", label: "Overview", icon: LayoutDashboard },
+    { href: "/bi", label: "BI Analytics", icon: PieChart },
     { href: "/clients", label: "Clients", icon: Users },
     { href: "/datasets", label: "Data", icon: Database },
     { href: "/insights", label: "AI Insights", icon: MessageSquareText },
@@ -40,21 +44,19 @@ const adminNavItems = [
     { href: "/compare", label: "Compare", icon: ArrowLeftRight },
     { href: "/goals", label: "Goals", icon: Target },
     { href: "/reports", label: "Reports", icon: FileText },
-    { href: "/integrations", label: "Integrations", icon: Zap },
     { href: "/settings", label: "Settings", icon: Settings },
 ]
 
 const clientNavItems = [
-    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/dashboard", label: "Home", icon: Home },
+    { href: "/overview", label: "Overview", icon: LayoutDashboard },
+    { href: "/bi", label: "BI Analytics", icon: PieChart },
     { href: "/datasets", label: "My Data", icon: Database },
     { href: "/insights", label: "AI Insights", icon: MessageSquareText },
     { href: "/chart-builder", label: "Chart Builder", icon: BarChart3 },
     { href: "/compare", label: "Compare", icon: ArrowLeftRight },
     { href: "/goals", label: "Goals", icon: Target },
-    { href: "/data-story", label: "Data Story", icon: Sparkles },
-    { href: "/anomalies", label: "Anomalies", icon: AlertTriangle },
     { href: "/reports", label: "Reports", icon: FileText },
-    { href: "/integrations", label: "Integrations", icon: Zap },
     { href: "/settings", label: "Settings", icon: Settings },
 ]
 
