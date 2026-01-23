@@ -26,7 +26,7 @@ export default function DatasetDetailsPage() {
         setLoading(true)
         try {
             const offset = page * pageSize
-            const res = await fetch(`http://localhost:8000/datasets/${id}/content?limit=${pageSize}&offset=${offset}`)
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/datasets/${id}/content?limit=${pageSize}&offset=${offset}`)
 
             if (res.ok) {
                 const json = await res.json()

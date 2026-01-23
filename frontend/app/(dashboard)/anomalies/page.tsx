@@ -38,7 +38,7 @@ export default function AnomaliesPage() {
         const loadAnomalies = async () => {
             try {
                 // First get the latest dataset
-                const dsRes = await fetch("http://localhost:8000/datasets/")
+                const dsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/datasets/`)
                 if (dsRes.ok) {
                     const datasets = await dsRes.json()
                     if (datasets.length > 0) {
@@ -46,7 +46,7 @@ export default function AnomaliesPage() {
                         setDatasetName(latest.filename)
 
                         // Fetch anomalies for this dataset
-                        const anomalyRes = await fetch(`http://localhost:8000/analytics/${latest.id}/anomalies`)
+                        const anomalyRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/analytics/${latest.id}/anomalies`)
                         if (anomalyRes.ok) {
                             const data = await anomalyRes.json()
                             if (data.anomalies && data.anomalies.length > 0) {

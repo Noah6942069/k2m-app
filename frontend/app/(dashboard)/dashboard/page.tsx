@@ -112,7 +112,7 @@ export default function DashboardPage() {
                 // 1. Load User Preferences
                 if (user?.email) {
                     try {
-                        const prefRes = await fetch(`http://localhost:8000/preferences/dashboard/${user.email}`)
+                        const prefRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/preferences/dashboard/${user.email}`)
                         if (prefRes.ok) {
                             const prefData = await prefRes.json()
                             setPreferences(prefData.widget_config)
@@ -123,7 +123,7 @@ export default function DashboardPage() {
                 }
 
                 // 2. Fetch all datasets
-                const dsRes = await fetch("http://localhost:8000/datasets/")
+                const dsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/datasets/`)
                 if (dsRes.ok) {
                     const data = await dsRes.json()
                     setDatasets(data)
@@ -135,7 +135,7 @@ export default function DashboardPage() {
                         setSelectedDatasetId(latest.id)
 
                         // Fetch basic stats
-                        const statsRes = await fetch(`http://localhost:8000/analytics/${latest.id}/stats`)
+                        const statsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/analytics/${latest.id}/stats`)
                         if (statsRes.ok) {
                             const statsData = await statsRes.json()
                             setStats(statsData)
@@ -143,7 +143,7 @@ export default function DashboardPage() {
 
                         // Fetch ADVANCED stats
                         try {
-                            const advRes = await fetch(`http://localhost:8000/analytics/${latest.id}/advanced-stats`)
+                            const advRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/analytics/${latest.id}/advanced-stats`)
                             if (advRes.ok) {
                                 const advData = await advRes.json()
                                 setAdvancedStats(advData)
@@ -153,7 +153,7 @@ export default function DashboardPage() {
                         }
 
                         // Fetch suggested filters
-                        const filtersRes = await fetch(`http://localhost:8000/analytics/${latest.id}/filters`)
+                        const filtersRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/analytics/${latest.id}/filters`)
                         if (filtersRes.ok) {
                             const filtersData = await filtersRes.json()
                             setSuggestedFilters(filtersData.filters || [])
@@ -173,7 +173,7 @@ export default function DashboardPage() {
         setPreferences(newPrefs)
         if (user?.email) {
             try {
-                await fetch(`http://localhost:8000/preferences/dashboard/${user.email}`, {
+                await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/preferences/dashboard/${user.email}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ widget_config: newPrefs })
@@ -196,17 +196,17 @@ export default function DashboardPage() {
             const ds = datasets.find(d => d.id === datasetId)
             setRecentDataset(ds)
 
-            const statsRes = await fetch(`http://localhost:8000/analytics/${datasetId}/stats`)
+            const statsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/analytics/${datasetId}/stats`)
             if (statsRes.ok) {
                 setStats(await statsRes.json())
             }
 
-            const advRes = await fetch(`http://localhost:8000/analytics/${datasetId}/advanced-stats`)
+            const advRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/analytics/${datasetId}/advanced-stats`)
             if (advRes.ok) {
                 setAdvancedStats(await advRes.json())
             }
 
-            const filtersRes = await fetch(`http://localhost:8000/analytics/${datasetId}/filters`)
+            const filtersRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/analytics/${datasetId}/filters`)
             if (filtersRes.ok) {
                 const filtersData = await filtersRes.json()
                 setSuggestedFilters(filtersData.filters || [])
@@ -229,7 +229,7 @@ export default function DashboardPage() {
         // Fetch filtered stats
         if (selectedDatasetId) {
             try {
-                const res = await fetch(`http://localhost:8000/analytics/${selectedDatasetId}/stats/filtered`, {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/analytics/${selectedDatasetId}/stats/filtered`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ filters: newFilters })

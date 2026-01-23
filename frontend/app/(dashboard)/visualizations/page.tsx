@@ -11,7 +11,7 @@ export default function VisualizationsPage() {
 
     const fetchDatasets = async () => {
         try {
-            const res = await fetch("http://localhost:8000/datasets/")
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/datasets/`)
             if (res.ok) {
                 const data = await res.json()
                 setDatasets(data)

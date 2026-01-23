@@ -16,12 +16,12 @@ export default function DataStoryPage() {
     useEffect(() => {
         const loadData = async () => {
             try {
-                const dsRes = await fetch("http://localhost:8000/datasets/")
+                const dsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/datasets/`)
                 if (dsRes.ok) {
                     const data = await dsRes.json()
                     if (data.length > 0) {
                         const latest = data[data.length - 1]
-                        const statsRes = await fetch(`http://localhost:8000/analytics/${latest.id}/stats`)
+                        const statsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/analytics/${latest.id}/stats`)
                         if (statsRes.ok) {
                             const statsData = await statsRes.json()
                             setStats(statsData)

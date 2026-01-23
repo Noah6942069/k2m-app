@@ -28,7 +28,7 @@ export default function DatasetsPage() {
 
     const fetchDatasets = async () => {
         try {
-            const res = await fetch("http://localhost:8000/datasets/")
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/datasets/`)
             if (res.ok) {
                 const data = await res.json()
                 setDatasets(data)
@@ -40,7 +40,7 @@ export default function DatasetsPage() {
 
     const deleteDataset = async (id: number) => {
         try {
-            const res = await fetch(`http://localhost:8000/datasets/${id}`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/datasets/${id}`, {
                 method: "DELETE"
             })
             if (res.ok) {
@@ -53,7 +53,7 @@ export default function DatasetsPage() {
     }
 
     const downloadDataset = (id: number) => {
-        window.open(`http://localhost:8000/datasets/${id}/download`, "_blank")
+        window.open(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/datasets/${id}/download`, "_blank")
     }
 
     useEffect(() => {

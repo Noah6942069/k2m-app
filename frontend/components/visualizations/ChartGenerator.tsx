@@ -49,7 +49,7 @@ export function ChartGenerator({ datasets }: ChartGeneratorProps) {
 
     const fetchColumns = async (id: string) => {
         try {
-            const res = await fetch(`http://localhost:8000/visualizations/dataset/${id}/columns`)
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/visualizations/dataset/${id}/columns`)
             if (res.ok) {
                 const cols = await res.json()
                 setColumns(cols)
@@ -65,7 +65,7 @@ export function ChartGenerator({ datasets }: ChartGeneratorProps) {
         setLoading(true)
         setError("")
         try {
-            let url = `http://localhost:8000/visualizations/dataset/${selectedDataset}/generate?type=${chartType}&x_axis=${xAxis}`
+            let url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/visualizations/dataset/${selectedDataset}/generate?type=${chartType}&x_axis=${xAxis}`
             if (yAxis && yAxis !== "count_ops") url += `&y_axis=${yAxis}`
 
             const res = await fetch(url)

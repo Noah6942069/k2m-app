@@ -33,11 +33,11 @@ export default function SettingsPage() {
     const clearAllData = async () => {
         setClearing(true)
         try {
-            const res = await fetch("http://localhost:8000/datasets/")
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/datasets/`)
             if (res.ok) {
                 const datasets = await res.json()
                 for (const ds of datasets) {
-                    await fetch(`http://localhost:8000/datasets/${ds.id}`, { method: "DELETE" })
+                    await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/datasets/${ds.id}`, { method: "DELETE" })
                 }
             }
             setCleared(true)

@@ -48,7 +48,7 @@ export function AutoDashboard({ datasetId }: AutoDashboardProps) {
     const fetchStats = async () => {
         setLoading(true)
         try {
-            const res = await fetch(`http://localhost:8000/analytics/${datasetId}/stats`)
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/analytics/${datasetId}/stats`)
             if (!res.ok) throw new Error("Failed to fetch statistics")
 
             const data = await res.json()

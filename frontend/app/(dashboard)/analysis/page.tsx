@@ -38,7 +38,7 @@ export default function AnalysisPage() {
 
     const fetchDatasets = async () => {
         try {
-            const res = await fetch("http://localhost:8000/datasets/")
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/datasets/`)
             if (res.ok) {
                 const data = await res.json()
                 setDatasets(data)
@@ -50,7 +50,7 @@ export default function AnalysisPage() {
 
     const fetchColumns = async (id: number) => {
         try {
-            const res = await fetch(`http://localhost:8000/visualizations/dataset/${id}/columns`)
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/visualizations/dataset/${id}/columns`)
             if (res.ok) {
                 const cols = await res.json()
                 setColumns(cols)

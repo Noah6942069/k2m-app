@@ -11,14 +11,14 @@ export function SidebarStats({ collapsed }: { collapsed: boolean }) {
         const fetchStats = async () => {
             try {
                 // Fetch datasets to get the latest one
-                const dsRes = await fetch("http://localhost:8000/datasets/")
+                const dsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/datasets/`)
                 if (dsRes.ok) {
                     const datasets = await dsRes.json()
                     if (datasets.length > 0) {
                         const latest = datasets[datasets.length - 1]
 
                         // Fetch stats for latest dataset
-                        const statsRes = await fetch(`http://localhost:8000/analytics/${latest.id}/stats`)
+                        const statsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/analytics/${latest.id}/stats`)
                         if (statsRes.ok) {
                             const data = await statsRes.json()
                             setStats(data)
