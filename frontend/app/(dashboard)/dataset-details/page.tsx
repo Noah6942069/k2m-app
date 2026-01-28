@@ -1,16 +1,16 @@
 "use client"
 
-import { useEffect, useState, useMemo } from "react"
-import { useParams } from "next/navigation"
+import { useEffect, useState, useMemo, Suspense } from "react"
+import { useSearchParams } from "next/navigation"
 import { DataTable } from "@/components/datasets/DataTable"
 import { ColumnDef } from "@tanstack/react-table"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Download, FileText } from "lucide-react"
 import Link from "next/link"
 
-export default function DatasetDetailsPage() {
-    const params = useParams()
-    const id = params?.id
+function DatasetDetailsContent() {
+    const searchParams = useSearchParams()
+    const id = searchParams.get('id')
 
     // State
     const [data, setData] = useState<any[]>([])
@@ -101,5 +101,13 @@ export default function DatasetDetailsPage() {
                 />
             </div>
         </div>
+    )
+}
+
+export default function DatasetDetailsPage() {
+    return (
+        <Suspense fallback={<div>Loading dataset...</div>}>
+            <DatasetDetailsContent />
+        </Suspense>
     )
 }

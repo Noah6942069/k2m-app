@@ -30,6 +30,19 @@ import {
     PieChart,
     Pie
 } from "recharts"
+import { SkeletonCard, SkeletonChart, Skeleton } from "@/components/ui/skeleton"
+
+// K2M Brand Colors
+const K2M_COLORS = {
+    primary: '#7C5CFC',
+    primaryDark: '#5E43D8',
+    primaryDeep: '#432EB5',
+    primaryLight: '#9F84FD',
+    primaryMuted: '#B49DFE',
+    background: '#0f1219',
+    card: '#161b26',
+    border: '#252d3d',
+}
 
 interface AutoDashboardProps {
     datasetId: number
@@ -57,7 +70,7 @@ export function AutoDashboard({ datasetId }: AutoDashboardProps) {
             setStats(data)
         } catch (error) {
             console.error(error)
-            setStats(null) // Reset stats on error
+            setStats(null)
         } finally {
             setLoading(false)
         }
@@ -65,10 +78,28 @@ export function AutoDashboard({ datasetId }: AutoDashboardProps) {
 
     if (loading) {
         return (
-            <div className="flex h-[50vh] items-center justify-center">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="h-12 w-12 animate-spin rounded-full border-4 border-violet-500 border-t-transparent shadow-[0_0_15px_rgba(139,92,246,0.5)]"></div>
-                    <p className="text-zinc-400 font-medium animate-pulse">Analyzing Data...</p>
+            <div className="space-y-6 p-2 animate-enter">
+                {/* Header skeleton */}
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                    <div className="space-y-2">
+                        <Skeleton className="h-8 w-64" />
+                        <Skeleton className="h-4 w-40" />
+                    </div>
+                    <Skeleton className="h-10 w-36 rounded-2xl" />
+                </div>
+
+                {/* Stats skeleton */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <SkeletonCard />
+                    <SkeletonCard />
+                    <SkeletonCard />
+                    <SkeletonCard />
+                </div>
+
+                {/* Charts skeleton */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <SkeletonChart className="lg:col-span-2" />
+                    <Skeleton className="h-[400px] rounded-2xl" />
                 </div>
             </div>
         )
@@ -91,10 +122,10 @@ export function AutoDashboard({ datasetId }: AutoDashboardProps) {
     const numericCols = stats.column_stats.filter((c: any) => c.type === "numeric")
     const categoricalCols = stats.column_stats.filter((c: any) => c.type === "categorical")
 
-    // Fallback data for visual flair if stats are empty
+    // Data health using brand colors
     const healthData = [
-        { name: 'Valid', value: 100 - stats.missing_percentage, fill: '#8b5cf6' }, // Violet
-        { name: 'Missing', value: stats.missing_percentage, fill: '#3f3f46' }, // Dark Grey
+        { name: 'Valid', value: 100 - stats.missing_percentage, fill: K2M_COLORS.primary },
+        { name: 'Missing', value: stats.missing_percentage, fill: K2M_COLORS.border },
     ]
 
     return (
@@ -119,9 +150,9 @@ export function AutoDashboard({ datasetId }: AutoDashboardProps) {
             {/* Top Row: Hero Stats (Mobile Card Style) */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {/* Stat Card 1 */}
-                <div className="relative overflow-hidden rounded-[2rem] bg-[#111116] border border-white/5 p-6 group hover:border-violet-500/30 transition-all duration-300">
+                <div className="relative overflow-hidden rounded-2xl bg-card border border-border p-6 group hover:border-primary/30 transition-all duration-300 card-hover-glow">
                     <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <Database className="w-24 h-24 text-violet-500" />
+                        <Database className="w-24 h-24 text-primary" />
                     </div>
                     <div className="flex flex-col h-full justify-between relative z-10">
                         <div className="text-zinc-400 font-medium text-sm flex items-center gap-2">
@@ -140,9 +171,9 @@ export function AutoDashboard({ datasetId }: AutoDashboardProps) {
                 </div>
 
                 {/* Stat Card 2 */}
-                <div className="relative overflow-hidden rounded-[2rem] bg-[#111116] border border-white/5 p-6 group hover:border-blue-500/30 transition-all duration-300">
+                <div className="relative overflow-hidden rounded-2xl bg-card border border-border p-6 group hover:border-primary/30 transition-all duration-300 card-hover-glow">
                     <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <FileText className="w-24 h-24 text-blue-500" />
+                        <FileText className="w-24 h-24 text-primary" />
                     </div>
                     <div className="flex flex-col h-full justify-between relative z-10">
                         <div className="text-zinc-400 font-medium text-sm">Features</div>
@@ -151,10 +182,10 @@ export function AutoDashboard({ datasetId }: AutoDashboardProps) {
                                 {stats.total_columns}
                             </span>
                             <div className="flex gap-2 mt-2">
-                                <span className="bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full text-[10px] font-bold">
+                                <span className="bg-primary/20 text-primary px-2 py-0.5 rounded-full text-[10px] font-bold">
                                     {numericCols.length} NUM
                                 </span>
-                                <span className="bg-violet-500/20 text-violet-300 px-2 py-0.5 rounded-full text-[10px] font-bold">
+                                <span className="bg-primary/10 text-primary/80 px-2 py-0.5 rounded-full text-[10px] font-bold">
                                     {categoricalCols.length} CAT
                                 </span>
                             </div>
@@ -162,8 +193,8 @@ export function AutoDashboard({ datasetId }: AutoDashboardProps) {
                     </div>
                 </div>
 
-                {/* Stat Card 3 - Radial Progress Lookalike (Pie) */}
-                <div className="relative overflow-hidden rounded-[2rem] bg-[#111116] border border-white/5 p-6 flex flex-col items-center justify-center">
+                {/* Stat Card 3 - Data Health */}
+                <div className="relative overflow-hidden rounded-2xl bg-card border border-border p-6 flex flex-col items-center justify-center card-hover-glow">
                     <div className="absolute top-4 left-6 text-zinc-400 font-medium text-sm w-full">Data Health</div>
                     <div className="relative h-32 w-32 mt-4">
                         <ResponsiveContainer width="100%" height="100%">
@@ -189,7 +220,7 @@ export function AutoDashboard({ datasetId }: AutoDashboardProps) {
                 </div>
 
                 {/* Stat Card 4 */}
-                <div className="relative overflow-hidden rounded-[2rem] bg-[#111116] border border-white/5 p-6">
+                <div className="relative overflow-hidden rounded-2xl bg-card border border-border p-6 card-hover-glow">
                     <div className="flex justify-between items-start">
                         <div className="text-zinc-400 font-medium text-sm">Duplicates</div>
                         <MoreHorizontal className="w-5 h-5 text-zinc-600" />
@@ -205,9 +236,9 @@ export function AutoDashboard({ datasetId }: AutoDashboardProps) {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
                 {/* Large Chart: Distribution */}
-                <div className="lg:col-span-2 rounded-[2.5rem] bg-[#111116] border border-white/5 p-8 relative overflow-hidden">
+                <div className="lg:col-span-2 rounded-2xl bg-card border border-border p-8 relative overflow-hidden">
                     {/* Gradient Glow */}
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-violet-600 via-blue-600 to-transparent opacity-50"></div>
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-primary/60 to-transparent opacity-50"></div>
 
                     <div className="flex justify-between items-center mb-8">
                         <div>
@@ -226,16 +257,22 @@ export function AutoDashboard({ datasetId }: AutoDashboardProps) {
                                 <BarChart data={categoricalCols[0].distribution} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
                                     <defs>
                                         <linearGradient id="colorBar" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.8} />
-                                            <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                                            <stop offset="0%" stopColor={K2M_COLORS.primary} stopOpacity={0.9} />
+                                            <stop offset="95%" stopColor={K2M_COLORS.primaryDark} stopOpacity={0.3} />
                                         </linearGradient>
                                     </defs>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
-                                    <XAxis dataKey="name" stroke="#52525b" fontSize={12} tickLine={false} axisLine={false} dy={10} />
-                                    <YAxis stroke="#52525b" fontSize={12} tickLine={false} axisLine={false} dx={-10} />
+                                    <CartesianGrid strokeDasharray="3 3" stroke={K2M_COLORS.border} vertical={false} />
+                                    <XAxis dataKey="name" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} dy={10} />
+                                    <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} dx={-10} />
                                     <Tooltip
-                                        cursor={{ fill: '#27272a', opacity: 0.2 }}
-                                        contentStyle={{ backgroundColor: '#09090b', borderColor: '#27272a', borderRadius: '12px', color: '#fff' }}
+                                        cursor={{ fill: K2M_COLORS.border, opacity: 0.3 }}
+                                        contentStyle={{
+                                            backgroundColor: K2M_COLORS.card,
+                                            borderColor: K2M_COLORS.border,
+                                            borderRadius: '12px',
+                                            color: '#fff',
+                                            boxShadow: '0 10px 30px -10px rgba(0,0,0,0.5)'
+                                        }}
                                     />
                                     <Bar
                                         dataKey="value"
@@ -254,33 +291,33 @@ export function AutoDashboard({ datasetId }: AutoDashboardProps) {
                 </div>
 
                 {/* Side Panel: Numeric Stats List */}
-                <div className="rounded-[2.5rem] bg-[#111116] border border-white/5 p-6 h-full">
-                    <h3 className="text-lg font-semibold text-white mb-6">Key Metrics</h3>
+                <div className="rounded-2xl bg-card border border-border p-6 h-full">
+                    <h3 className="text-lg font-semibold text-foreground mb-6">Key Metrics</h3>
                     <div className="space-y-4 max-h-[340px] overflow-y-auto pr-2 custom-scrollbar">
                         {numericCols.map((col: any, idx: number) => (
-                            <div key={idx} className="p-4 rounded-3xl bg-white/5 hover:bg-white/10 transition-colors border border-white/5">
+                            <div key={idx} className="p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors border border-border">
                                 <div className="flex justify-between items-center mb-2">
-                                    <span className="text-zinc-300 font-medium text-sm truncate max-w-[120px]" title={col.name}>
+                                    <span className="text-muted-foreground font-medium text-sm truncate max-w-[120px]" title={col.name}>
                                         {col.name}
                                     </span>
-                                    <span className="text-xs px-2 py-1 rounded-full bg-black/40 text-zinc-500">
+                                    <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">
                                         AVG
                                     </span>
                                 </div>
                                 <div className="flex items-baseline gap-1">
-                                    <span className="text-xl font-bold text-white">
+                                    <span className="text-xl font-bold text-foreground counter-animate">
                                         {col.mean > 1000 ? (col.mean / 1000).toFixed(1) + 'k' : col.mean.toFixed(1)}
                                     </span>
                                 </div>
-                                {/* Mini Area Chart Simulation (Static for now, just visual) */}
-                                <div className="h-8 w-full mt-2 opacity-50">
-                                    <div className="h-full w-full bg-gradient-to-r from-violet-500/20 to-transparent rounded-full flex items-end overflow-hidden px-1 gap-1">
-                                        <div className="w-[10%] h-[30%] bg-violet-500 rounded-t-sm"></div>
-                                        <div className="w-[10%] h-[50%] bg-violet-500 rounded-t-sm"></div>
-                                        <div className="w-[10%] h-[40%] bg-violet-500 rounded-t-sm"></div>
-                                        <div className="w-[10%] h-[70%] bg-violet-500 rounded-t-sm"></div>
-                                        <div className="w-[10%] h-[60%] bg-violet-500 rounded-t-sm"></div>
-                                        <div className="w-[10%] h-[80%] bg-violet-500 rounded-t-sm"></div>
+                                {/* Mini sparkline visual */}
+                                <div className="h-6 w-full mt-2 opacity-60">
+                                    <div className="h-full w-full bg-gradient-to-r from-primary/20 to-transparent rounded-full flex items-end overflow-hidden px-1 gap-0.5">
+                                        <div className="w-[12%] h-[30%] bg-primary/70 rounded-t-sm"></div>
+                                        <div className="w-[12%] h-[55%] bg-primary/70 rounded-t-sm"></div>
+                                        <div className="w-[12%] h-[40%] bg-primary/70 rounded-t-sm"></div>
+                                        <div className="w-[12%] h-[75%] bg-primary/70 rounded-t-sm"></div>
+                                        <div className="w-[12%] h-[60%] bg-primary/70 rounded-t-sm"></div>
+                                        <div className="w-[12%] h-[85%] bg-primary rounded-t-sm"></div>
                                     </div>
                                 </div>
                             </div>

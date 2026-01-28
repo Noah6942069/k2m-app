@@ -215,7 +215,7 @@ export default function DatasetsPage() {
 
                             {/* Actions */}
                             <div className="flex items-center gap-2 pt-4 border-t border-border">
-                                <Link href={`/datasets/${ds.id}`} className="flex-1">
+                                <Link href={`/dataset-details?id=${ds.id}`} className="flex-1">
                                     <Button variant="ghost" size="sm" className="w-full text-muted-foreground hover:text-foreground hover:bg-muted">
                                         <Eye className="w-4 h-4 mr-2" />
                                         View
@@ -311,7 +311,7 @@ export default function DatasetsPage() {
                                     </td>
                                     <td className="px-5 py-4">
                                         <div className="flex items-center justify-end gap-1">
-                                            <Link href={`/datasets/${ds.id}`}>
+                                            <Link href={`/dataset-details?id=${ds.id}`}>
                                                 <Button variant="ghost" size="sm" className="text-zinc-400 hover:text-white">
                                                     <Eye className="w-4 h-4" />
                                                 </Button>

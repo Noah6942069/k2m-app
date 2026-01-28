@@ -1,52 +1,54 @@
 "use client"
 
 import { MobileSidebar } from "./Sidebar"
+import { NotificationPanel } from "./NotificationPanel"
 import { Button } from "@/components/ui/button"
 import { ModifierKey } from "@/components/ui/modifier-key"
-import { Bell, Search, User, LogOut, ChevronDown, Settings, Sparkles } from "lucide-react"
+import { Search, User, LogOut, ChevronDown, Settings } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { useState } from "react"
 import Link from "next/link"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { LanguageSwitcher } from "@/components/ui/language-switcher"
+import { cn } from "@/lib/utils"
 
 export function Header() {
     const { user, logout, isAdmin } = useAuth()
     const [showUserMenu, setShowUserMenu] = useState(false)
 
     return (
-        <header className="sticky top-0 z-40 h-16 glass border-b border-border/50">
+        <header className="sticky top-0 z-40 h-14 bg-background/80 backdrop-blur-md border-b border-border/40">
             <div className="flex items-center justify-between h-full px-4 md:px-6">
                 {/* Left: Mobile Menu + Search */}
                 <div className="flex items-center gap-3">
                     <MobileSidebar />
 
-                    {/* Search Bar - Premium Style */}
+                    {/* Search Bar - Minimal Style */}
                     <div className="hidden md:flex items-center">
                         <button
-                            className="group flex items-center gap-3 px-4 py-2.5 rounded-xl bg-muted/50 border border-border hover:border-primary/30 hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200 w-[300px]"
+                            className="group flex items-center gap-2.5 px-3 py-2 rounded-lg bg-muted/40 hover:bg-muted/60 border border-transparent hover:border-border/50 text-muted-foreground transition-all duration-150 w-[280px]"
                         >
-                            <Search className="w-4 h-4 group-hover:text-primary transition-colors" />
-                            <span className="text-sm">
-                                {isAdmin ? "Search clients, data..." : "Search your data..."}
+                            <Search className="w-4 h-4" />
+                            <span className="text-[13px]">
+                                Search...
                             </span>
-                            <div className="ml-auto flex items-center gap-1 text-xs text-muted-foreground">
-                                <kbd className="px-1.5 py-0.5 rounded bg-background/50 border border-border font-mono"><ModifierKey /></kbd>
-                                <kbd className="px-1.5 py-0.5 rounded bg-background/50 border border-border font-mono">K</kbd>
+                            <div className="ml-auto flex items-center gap-1 text-[11px] text-muted-foreground/70">
+                                <kbd className="px-1.5 py-0.5 rounded bg-background/80 border border-border/50 font-mono"><ModifierKey /></kbd>
+                                <kbd className="px-1.5 py-0.5 rounded bg-background/80 border border-border/50 font-mono">K</kbd>
                             </div>
                         </button>
                     </div>
                 </div>
 
                 {/* Right: Actions */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                     {/* Mobile Search */}
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="md:hidden text-muted-foreground hover:text-foreground"
+                        className="md:hidden text-muted-foreground hover:text-foreground h-9 w-9"
                     >
-                        <Search className="w-5 h-5" />
+                        <Search className="w-4 h-4" />
                     </Button>
 
                     {/* Language Switcher */}
@@ -56,89 +58,68 @@ export function Header() {
                     <ThemeToggle />
 
                     {/* Notifications */}
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="relative text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                    >
-                        <Bell className="w-5 h-5" />
-                        <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full animate-pulse" />
-                    </Button>
+                    <NotificationPanel />
+
+                    {/* Divider */}
+                    <div className="hidden md:block w-px h-6 bg-border/50 mx-1" />
 
                     {/* User Menu */}
                     <div className="relative">
                         <button
                             onClick={() => setShowUserMenu(!showUserMenu)}
-                            className="flex items-center gap-3 pl-3 pr-2 py-1.5 rounded-xl hover:bg-muted/50 transition-all duration-200 group"
+                            className="flex items-center gap-2 pl-2 pr-1.5 py-1.5 rounded-lg hover:bg-muted/50 transition-colors group"
                         >
                             <div className="hidden md:block text-right">
-                                <p className="text-sm font-medium text-foreground">{user?.name || "User"}</p>
-                                <p className="text-xs text-muted-foreground">
-                                    {isAdmin ? "Administrator" : "Client"}
+                                <p className="text-[13px] font-medium text-foreground leading-none mb-0.5">
+                                    {user?.displayName || "User"}
+                                </p>
+                                <p className="text-[11px] text-muted-foreground leading-none">
+                                    {isAdmin ? "Admin" : "Client"}
                                 </p>
                             </div>
-                            <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center group-hover:scale-105 transition-transform duration-200 shadow-lg shadow-primary/25">
-                                <User className="w-5 h-5 text-white" />
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-sm font-medium text-white">
+                                {user?.displayName?.[0]?.toUpperCase() || "U"}
                             </div>
-                            <ChevronDown className="w-4 h-4 text-muted-foreground hidden md:block transition-transform duration-200 group-hover:rotate-180" />
+                            <ChevronDown className={cn(
+                                "w-3.5 h-3.5 text-muted-foreground hidden md:block transition-transform duration-150",
+                                showUserMenu && "rotate-180"
+                            )} />
                         </button>
 
-                        {/* Dropdown - Premium Glass Effect */}
+                        {/* Dropdown */}
                         {showUserMenu && (
                             <>
                                 <div
                                     className="fixed inset-0 z-40"
                                     onClick={() => setShowUserMenu(false)}
                                 />
-                                <div className="absolute right-0 top-full mt-2 w-64 p-2 rounded-2xl glass-card shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                                <div className="absolute right-0 top-full mt-1.5 w-56 p-1.5 rounded-xl bg-popover border border-border shadow-lg z-50 animate-in fade-in slide-in-from-top-1 duration-150">
                                     {/* User Info */}
-                                    <div className="px-3 py-3 border-b border-border/50 mb-2">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center">
-                                                <User className="w-5 h-5 text-white" />
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-semibold text-foreground">{user?.name}</p>
-                                                <p className="text-xs text-muted-foreground">{user?.email}</p>
-                                            </div>
-                                        </div>
+                                    <div className="px-3 py-2.5 border-b border-border/50 mb-1.5">
+                                        <p className="text-sm font-medium text-foreground">{user?.displayName}</p>
+                                        <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                                     </div>
 
-                                    {/* Role/Company Badge */}
-                                    {isAdmin ? (
-                                        <div className="px-3 py-2 mb-1">
-                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/10 text-primary text-xs font-medium">
-                                                <Sparkles className="w-3 h-3" />
-                                                Administrator
-                                            </span>
-                                        </div>
-                                    ) : user?.companyName && (
-                                        <div className="px-3 py-2 mb-1">
-                                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground block mb-1">Company</span>
-                                            <p className="text-sm font-medium text-foreground">{user.companyName}</p>
-                                        </div>
-                                    )}
+                                    {/* Menu Items */}
+                                    <Link
+                                        href="/settings"
+                                        onClick={() => setShowUserMenu(false)}
+                                        className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                                    >
+                                        <Settings className="w-4 h-4" />
+                                        Settings
+                                    </Link>
 
-                                    {/* Quick Links */}
-                                    <div className="space-y-0.5">
-                                        <Link href="/settings" onClick={() => setShowUserMenu(false)}>
-                                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors text-sm">
-                                                <Settings className="w-4 h-4" />
-                                                Settings
-                                            </div>
-                                        </Link>
-
-                                        <button
-                                            onClick={() => {
-                                                setShowUserMenu(false)
-                                                logout()
-                                            }}
-                                            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-rose-500 hover:bg-rose-500/10 transition-colors text-sm"
-                                        >
-                                            <LogOut className="w-4 h-4" />
-                                            Sign Out
-                                        </button>
-                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            logout()
+                                            setShowUserMenu(false)
+                                        }}
+                                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                                    >
+                                        <LogOut className="w-4 h-4" />
+                                        Sign out
+                                    </button>
                                 </div>
                             </>
                         )}

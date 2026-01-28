@@ -1,201 +1,194 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
-import { Eye, EyeOff, ArrowRight, Sparkles, TrendingUp } from "lucide-react"
+import { Eye, EyeOff, Sparkles, TrendingUp, AlertCircle, Loader2, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import Link from "next/link"
 import Image from "next/image"
 
 export default function LoginPage() {
-    console.log("Rendering LoginPage")
+    const [loading, setLoading] = useState(false)
+    const { loginWithEmail, user } = useAuth()
+    const router = useRouter()
+
+    // Form State
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [showPassword, setShowPassword] = useState(false)
-    const [error, setError] = useState("")
-    const [loading, setLoading] = useState(false)
-    const { login } = useAuth()
-    const router = useRouter()
+    const [error, setError] = useState<string | null>(null)
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        setError("")
-        setLoading(true)
+    useEffect(() => {
+        if (user) {
+            router.push("/dashboard") // Redirect to /dashboard instead of /overview if that's the main route, checking next...
+        }
+    }, [user, router])
 
-        const result = await login(email, password)
+    const handleEmailLogin = async (e?: React.FormEvent) => {
+        e?.preventDefault()
 
-        if (result.success) {
-            router.push("/dashboard")
-        } else {
-            setError(result.error || "Login failed")
+        if (!email || !password) {
+            setError("Please enter both email and password")
+            return
         }
 
-        setLoading(false)
-    }
+        setLoading(true)
+        setError(null)
 
-    const fillDemoCredentials = (role: "admin" | "client") => {
-        if (role === "admin") {
-            setEmail("admin@k2m.com")
-            setPassword("admin123")
-        } else {
-            setEmail("altech@client.com")
-            setPassword("client123")
+        try {
+            await loginWithEmail(email, password)
+            // Redirect handled by useEffect
+        } catch (err: any) {
+            console.error("Login Error:", err)
+
+            // Professional Error Handling
+            if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+                setError("Invalid email or password. Please try again.")
+            } else if (err.code === 'auth/too-many-requests') {
+                setError("Too many failed attempts. Please try again later.")
+            } else {
+                setError("An unexpected error occurred. Please contact support.")
+            }
+        } finally {
+            setLoading(false)
         }
     }
 
     return (
-        <div className="min-h-screen bg-[#0d0d12] flex">
-            {/* Left Side - Branding */}
-            <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[#7c5cfc]/10 to-[#5b8def]/10 p-12 flex-col justify-between relative overflow-hidden">
-                {/* Background Pattern */}
-                <div className="absolute inset-0 opacity-30">
-                    <div className="absolute top-20 left-20 w-72 h-72 bg-[#7c5cfc]/20 rounded-full blur-3xl" />
-                    <div className="absolute bottom-20 right-20 w-96 h-96 bg-[#5b8def]/20 rounded-full blur-3xl" />
-                </div>
+        <div className="min-h-screen bg-[#0b0d14] flex selection:bg-primary/30 selection:text-white">
+            {/* Left Side - Visual Storytelling */}
+            <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-[#0a0b10]">
 
-                {/* Logo */}
-                <div className="relative z-10">
-                    <Image
-                        src="/k2m-logo-new.png"
-                        alt="K2M Analytics"
-                        width={140}
-                        height={48}
-                        className="object-contain"
-                    />
-                </div>
+                {/* Dynamic Background Elements */}
+                <div className="absolute inset-0 bg-grid-pattern opacity-20 pointer-events-none" />
+                <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[120px] animate-pulse" />
+                <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px] animate-float" />
 
-                {/* Hero Text */}
-                <div className="relative z-10 space-y-6">
-                    <h1 className="text-4xl font-bold text-white leading-tight">
-                        Smart Data,<br />
-                        Smarter Decisions
-                    </h1>
-                    <p className="text-zinc-400 max-w-md">
-                        Transform your business data into actionable insights with AI-powered analytics and interactive dashboards.
-                    </p>
-                    <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2 text-sm text-zinc-500">
-                            <Sparkles className="w-4 h-4 text-[#7c5cfc]" />
-                            <span>AI-Powered Insights</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-zinc-500">
-                            <TrendingUp className="w-4 h-4 text-emerald-400" />
-                            <span>Real-time Analytics</span>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Footer */}
-                <p className="relative z-10 text-sm text-zinc-600">
-                    © 2024 K2M Analytics. All rights reserved.
-                </p>
-            </div>
-
-            {/* Right Side - Login Form */}
-            <div className="flex-1 flex items-center justify-center p-8">
-                <div className="w-full max-w-md space-y-8">
-                    {/* Mobile Logo */}
-                    <div className="lg:hidden flex items-center justify-center mb-8">
-                        <Image
+                <div className="relative z-10 w-full h-full flex flex-col justify-between p-16">
+                    {/* Logo Area */}
+                    <div className="flex items-center gap-3">
+                        <img
                             src="/k2m-logo-new.png"
-                            alt="K2M"
-                            width={120}
-                            height={40}
-                            className="object-contain"
+                            alt="K2M Analytics"
+                            className="h-10 w-auto"
                         />
                     </div>
 
-                    <div className="text-center lg:text-left">
-                        <h2 className="text-2xl font-bold text-white">Welcome back</h2>
-                        <p className="text-zinc-500 mt-2">Sign in to your account</p>
-                    </div>
+                    {/* Hero Content */}
+                    <div className="space-y-8 max-w-lg">
+                        <h1 className="text-5xl font-display font-bold text-white leading-[1.1]">
+                            Unlock the <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-cyan-400">Power</span> of Your Data
+                        </h1>
+                        <p className="text-lg text-zinc-400 leading-relaxed">
+                            Experience the next generation of business intelligence.
+                            AI-driven insights, real-time analytics, and beautiful data visualization.
+                        </p>
 
-                    {/* Demo Quick Login */}
-                    <div className="p-4 rounded-xl bg-[#7c5cfc]/5 border border-[#7c5cfc]/20">
-                        <p className="text-sm text-zinc-400 mb-3">Quick demo login:</p>
-                        <div className="flex gap-2">
-                            <button
-                                onClick={() => fillDemoCredentials("admin")}
-                                className="flex-1 px-3 py-2 text-xs rounded-lg bg-[#7c5cfc]/10 text-[#7c5cfc] hover:bg-[#7c5cfc]/20 transition-colors"
-                            >
-                                Admin Login
-                            </button>
-                            <button
-                                onClick={() => fillDemoCredentials("client")}
-                                className="flex-1 px-3 py-2 text-xs rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-colors"
-                            >
-                                Client Login
-                            </button>
+                        <div className="flex items-center gap-6 pt-4">
+                            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm">
+                                <Sparkles className="w-4 h-4 text-amber-400" />
+                                <span className="text-sm text-zinc-300">AI-Powered</span>
+                            </div>
+                            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm">
+                                <TrendingUp className="w-4 h-4 text-emerald-400" />
+                                <span className="text-sm text-zinc-300">Real-time Stats</span>
+                            </div>
                         </div>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-5">
-                        <div>
-                            <label className="block text-sm font-medium text-zinc-400 mb-2">
-                                Email
-                            </label>
-                            <input
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                placeholder="you@company.com"
-                                className="w-full px-4 py-3 rounded-xl bg-white/[0.02] border border-white/[0.06] text-white placeholder:text-zinc-600 focus:border-[#7c5cfc]/50 focus:ring-0"
-                                required
-                            />
-                        </div>
+                    {/* Footer / Copyright */}
+                    <div className="text-xs text-zinc-600 font-medium tracking-wide uppercase">
+                        © 2026 K2M Analytics. All Rights Reserved.
+                    </div>
+                </div>
+            </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-zinc-400 mb-2">
-                                Password
-                            </label>
-                            <div className="relative">
+            {/* Right Side - Login Form */}
+            <div className="flex-1 flex items-center justify-center p-8 relative">
+                <div className="absolute inset-0 bg-gradient-radial from-primary/5 to-transparent opacity-50 pointer-events-none" />
+
+                <div className="w-full max-w-[420px] space-y-8 relative z-10">
+                    <div className="text-center space-y-2">
+                        <h2 className="text-3xl font-bold text-white tracking-tight">Welcome Back</h2>
+                        <p className="text-zinc-500">Sign in to access your dashboard</p>
+                    </div>
+
+                    <form onSubmit={handleEmailLogin} className="space-y-6 mt-8">
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-zinc-300 ml-1">Email Address</label>
                                 <input
-                                    type={showPassword ? "text" : "password"}
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    placeholder="••••••••"
-                                    className="w-full px-4 py-3 rounded-xl bg-white/[0.02] border border-white/[0.06] text-white placeholder:text-zinc-600 focus:border-[#7c5cfc]/50 focus:ring-0 pr-12"
-                                    required
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="w-full px-4 py-3.5 rounded-xl bg-white/[0.03] border border-white/[0.08] text-white placeholder-zinc-600 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all duration-200 hover:bg-white/[0.05]"
+                                    placeholder="name@company.com"
+                                    disabled={loading}
                                 />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors"
-                                >
-                                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                </button>
+                            </div>
+
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between ml-1">
+                                    <label className="text-sm font-medium text-zinc-300">Password</label>
+                                    <button
+                                        type="button"
+                                        onClick={() => { }}
+                                        className="text-xs text-primary hover:text-primary/80 transition-colors font-medium"
+                                    >
+                                        Forgot Password?
+                                    </button>
+                                </div>
+                                <div className="relative">
+                                    <input
+                                        type={showPassword ? "text" : "password"}
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        className="w-full px-4 py-3.5 rounded-xl bg-white/[0.03] border border-white/[0.08] text-white placeholder-zinc-600 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all duration-200 hover:bg-white/[0.05] pr-12"
+                                        placeholder="••••••••"
+                                        disabled={loading}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
+                                    >
+                                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
                         {error && (
-                            <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-                                {error}
+                            <div className="flex items-center gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-200 text-sm animate-scale-in">
+                                <AlertCircle className="w-5 h-5 shrink-0 text-red-500" />
+                                <p>{error}</p>
                             </div>
                         )}
 
                         <Button
                             type="submit"
                             disabled={loading}
-                            className="w-full py-3 bg-[#7c5cfc] hover:bg-[#6b4ce0] text-white font-medium"
+                            className="w-full h-12 bg-primary hover:bg-primary/90 text-white rounded-xl font-medium text-base shadow-lg shadow-primary/25 transition-all duration-300 hover:shadow-primary/40 active:scale-[0.98]"
                         >
                             {loading ? (
-                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                            ) : (
                                 <>
-                                    Sign In
-                                    <ArrowRight className="w-4 h-4 ml-2" />
+                                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                    Signing In...
                                 </>
+                            ) : (
+                                "Sign In"
                             )}
                         </Button>
-                    </form>
 
-                    <p className="text-center text-sm text-zinc-500">
-                        Don't have an account?{" "}
-                        <Link href="/signup" className="text-[#7c5cfc] hover:underline">
-                            Contact K2M
-                        </Link>
-                    </p>
+                        <div className="pt-2 text-center">
+                            <p className="text-zinc-500 text-sm">
+                                Don't have an account?{" "}
+                                <button type="button" className="text-primary hover:text-primary/80 font-medium transition-colors">
+                                    Contact Admin
+                                </button>
+                            </p>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

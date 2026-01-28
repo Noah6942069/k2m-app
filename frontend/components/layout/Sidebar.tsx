@@ -29,9 +29,9 @@ import {
     Zap,
     Home,
     PieChart,
-    Calculator
+    Calculator,
+    LogOut
 } from "lucide-react"
-import { CommandMenu } from "./CommandMenu"
 
 interface SidebarProps {
     collapsed?: boolean
@@ -39,8 +39,8 @@ interface SidebarProps {
 }
 
 export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
-    const { user, isAdmin } = useAuth()
-    const { theme, setTheme } = useTheme()
+    const { user, isAdmin, logout } = useAuth()
+    const { resolvedTheme } = useTheme()
     const { t } = useTranslation()
     const pathname = usePathname()
     const [mounted, setMounted] = useState(false)
@@ -48,6 +48,9 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
     useEffect(() => {
         setMounted(true)
     }, [])
+
+    // Prevent hydration mismatch
+    if (!mounted) return null
 
     const adminNavItems = [
         { href: "/dashboard", label: t.navigation.home, icon: Home },
@@ -58,116 +61,141 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         { href: "/insights", label: t.navigation.insights, icon: MessageSquareText },
         { href: "/analysis", label: t.navigation.analysis, icon: Beaker },
         { href: "/compare", label: t.navigation.compare, icon: ArrowLeftRight },
+        { href: "/anomalies", label: t.navigation.anomalies, icon: AlertTriangle },
         { href: "/goals", label: t.navigation.goals, icon: Target },
-        { href: "/simulation", label: "Simulation", icon: Calculator },
+        { href: "/simulation", label: t.navigation.simulation, icon: Zap },
         { href: "/reports", label: t.navigation.reports, icon: FileText },
         { href: "/settings", label: t.navigation.settings, icon: Settings },
     ]
 
     const clientNavItems = [
         { href: "/dashboard", label: t.navigation.home, icon: Home },
-        { href: "/overview", label: t.navigation.overview, icon: LayoutDashboard },
-        { href: "/bi", label: t.navigation.bi, icon: PieChart },
         { href: "/datasets", label: t.navigation.myData, icon: Database },
         { href: "/insights", label: t.navigation.insights, icon: MessageSquareText },
-        { href: "/chart-builder", label: t.navigation.chartBuilder, icon: BarChart3 },
-        { href: "/compare", label: t.navigation.compare, icon: ArrowLeftRight },
-        { href: "/goals", label: t.navigation.goals, icon: Target },
-        { href: "/simulation", label: "Simulation", icon: Calculator },
-        { href: "/reports", label: t.navigation.reports, icon: FileText },
         { href: "/settings", label: t.navigation.settings, icon: Settings },
     ]
 
     const navItems = isAdmin ? adminNavItems : clientNavItems
 
-    if (!mounted) {
-        return <div className="w-[280px] h-screen bg-card border-r border-border/50" />
-    }
-
     return (
         <aside
             className={cn(
-                "hidden md:flex flex-col h-screen sticky top-0 bg-card/50 backdrop-blur-xl border-r border-border/50 transition-all duration-300 z-50",
-                collapsed ? "w-[80px]" : "w-[280px]"
+                "hidden md:flex flex-col h-screen sticky top-0 bg-sidebar border-r border-border/40 transition-all duration-300 ease-out z-50",
+                collapsed ? "w-[72px]" : "w-[260px]"
             )}
         >
             {/* Logo Area */}
-            <div className="h-20 flex items-center px-6 border-b border-border/50">
+            <div className={cn(
+                "h-16 flex items-center border-b border-border/40",
+                collapsed ? "px-4 justify-center" : "px-5"
+            )}>
                 <Link href="/dashboard" className="flex items-center gap-3">
-                    {/* Theme-aware logo */}
                     <img
-                        src={theme === 'dark' ? '/k2m-logo-new.png' : '/logo-light.png'}
-                        alt="K2M Analytics"
+                        src={resolvedTheme === 'dark' ? '/k2m-logo-new.png' : '/logo-light.png'}
+                        alt="K2M"
                         className={cn(
                             "transition-all duration-300",
-                            collapsed ? "h-10 w-auto" : "h-14 w-auto"
+                            resolvedTheme !== 'dark' && "mix-blend-multiply contrast-125 brightness-110",
+                            collapsed ? "h-9 w-auto" : "h-11 w-auto"
                         )}
                     />
                 </Link>
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 py-6 px-3 space-y-1 overflow-y-auto custom-scrollbar">
-                {navItems.map((item) => {
-                    const isActive = pathname === item.href
-                    return (
-                        <Link
-                            key={item.href}
-                            href={item.href}
-                        >
-                            <Button
-                                variant="ghost"
-                                className={cn(
-                                    "w-full justify-start gap-3 px-3 py-6 rounded-xl transition-all duration-200 group relative overflow-hidden",
-                                    isActive
-                                        ? "bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary"
-                                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                                    collapsed && "justify-center px-0"
-                                )}
-                            >
-                                {isActive && (
-                                    <div className="absolute inset-y-0 left-0 w-1 bg-primary rounded-r-full" />
-                                )}
-                                <item.icon className={cn("w-5 h-5 transition-transform group-hover:scale-110", isActive && "fill-current")} />
-                                {!collapsed && <span className="font-medium">{item.label}</span>}
-                            </Button>
-                        </Link>
-                    )
-                })}
+            <nav className="flex-1 py-4 px-3 overflow-y-auto scrollbar-thin">
+                <div className="space-y-0.5">
+                    {navItems.map((item) => {
+                        const isActive = pathname === item.href
+                        const Icon = item.icon
+
+                        return (
+                            <Link key={item.href} href={item.href}>
+                                <div
+                                    className={cn(
+                                        "group flex items-center gap-3 px-3 h-10 rounded-lg transition-all duration-150 relative",
+                                        isActive
+                                            ? "bg-primary/10 text-primary"
+                                            : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
+                                        collapsed && "justify-center px-0"
+                                    )}
+                                >
+                                    {/* Active indicator */}
+                                    {isActive && (
+                                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full" />
+                                    )}
+
+                                    <Icon className={cn(
+                                        "w-[18px] h-[18px] shrink-0 transition-transform duration-150",
+                                        isActive && "text-primary",
+                                        !collapsed && "group-hover:scale-105"
+                                    )} />
+
+                                    {!collapsed && (
+                                        <span className={cn(
+                                            "text-[13px] font-medium truncate",
+                                            isActive && "text-primary"
+                                        )}>
+                                            {item.label}
+                                        </span>
+                                    )}
+                                </div>
+                            </Link>
+                        )
+                    })}
+                </div>
             </nav>
 
-            {/* Footer */}
-            <div className="p-4 border-t border-border/50">
-                {!collapsed ? (
-                    <div className="p-4 rounded-2xl bg-gradient-to-br from-primary/10 to-blue-500/10 border border-border/50">
-                        <div className="flex items-center gap-3 mb-3">
-                            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                                <span className="font-bold text-primary">
-                                    {user?.name?.[0] || "U"}
-                                </span>
+            {/* Footer - User & Collapse */}
+            <div className={cn(
+                "border-t border-border/40",
+                collapsed ? "p-2" : "p-3"
+            )}>
+                {/* User Card */}
+                {!collapsed && (
+                    <div className="mb-3 p-3 rounded-xl bg-muted/30 border border-border/40">
+                        <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-sm font-semibold text-white">
+                                {user?.displayName?.[0]?.toUpperCase() || "U"}
                             </div>
-                            <div className="flex-1 overflow-hidden">
-                                <p className="font-semibold text-sm truncate">{user?.name || t.common.user}</p>
-                                <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-foreground truncate">
+                                    {user?.displayName || "User"}
+                                </p>
+                                <p className="text-xs text-muted-foreground truncate">
+                                    {user?.email}
+                                </p>
                             </div>
                         </div>
-                        <Button variant="ghost" className="w-full justify-start gap-2 h-8 text-xs hover:bg-background/50" onClick={onToggle}>
-                            {collapsed ? <ChevronRight className="w-4 h-4 ml-auto" /> : <ChevronLeft className="w-4 h-4 ml-auto" />}
-                            <span>{t.common.back}</span>
-                        </Button>
                     </div>
-                ) : (
-                    <Button variant="ghost" size="icon" className="w-full h-12 rounded-xl" onClick={onToggle}>
-                        <ChevronRight className="w-5 h-5" />
-                    </Button>
                 )}
+
+                {/* Collapse/Expand Button */}
+                <button
+                    onClick={onToggle}
+                    className={cn(
+                        "w-full flex items-center gap-2 h-9 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors",
+                        collapsed ? "justify-center" : "px-3"
+                    )}
+                >
+                    {collapsed ? (
+                        <ChevronRight className="w-4 h-4" />
+                    ) : (
+                        <>
+                            <ChevronLeft className="w-4 h-4" />
+                            <span className="text-xs font-medium">Collapse</span>
+                        </>
+                    )}
+                </button>
             </div>
         </aside>
     )
 }
 
+// Mobile Sidebar
 export function MobileSidebar() {
     const { user, isAdmin, logout } = useAuth()
+    const { theme } = useTheme()
     const { t } = useTranslation()
     const pathname = usePathname()
     const [open, setOpen] = useState(false)
@@ -182,6 +210,7 @@ export function MobileSidebar() {
         { href: "/analysis", label: t.navigation.analysis, icon: Beaker },
         { href: "/compare", label: t.navigation.compare, icon: ArrowLeftRight },
         { href: "/goals", label: t.navigation.goals, icon: Target },
+        { href: "/simulation", label: "Simulation", icon: Calculator },
         { href: "/reports", label: t.navigation.reports, icon: FileText },
         { href: "/settings", label: t.navigation.settings, icon: Settings },
     ]
@@ -195,6 +224,7 @@ export function MobileSidebar() {
         { href: "/chart-builder", label: t.navigation.chartBuilder, icon: BarChart3 },
         { href: "/compare", label: t.navigation.compare, icon: ArrowLeftRight },
         { href: "/goals", label: t.navigation.goals, icon: Target },
+        { href: "/simulation", label: "Simulation", icon: Calculator },
         { href: "/reports", label: t.navigation.reports, icon: FileText },
         { href: "/settings", label: t.navigation.settings, icon: Settings },
     ]
@@ -204,68 +234,88 @@ export function MobileSidebar() {
     return (
         <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="md:hidden text-muted-foreground hover:text-foreground"
+                >
                     <Menu className="w-5 h-5" />
-                    <span className="sr-only">Toggle Menu</span>
                 </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-[300px] sm:w-[350px] p-0">
+            <SheetContent side="left" className="w-[280px] p-0 bg-sidebar border-r border-border/40">
                 <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-                <div className="h-full flex flex-col">
-                    <div className="h-16 flex items-center px-6 border-b border-border/50">
-                        <div className="flex items-center gap-3">
-                            <div className="relative w-8 h-8 flex items-center justify-center rounded-xl bg-gradient-to-br from-primary to-blue-600 shadow-lg shadow-primary/20">
-                                <span className="text-white font-bold text-lg">K</span>
-                            </div>
-                            <span className="font-bold text-lg bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
-                                K2M Analytics
-                            </span>
-                        </div>
-                    </div>
 
-                    <nav className="flex-1 py-6 px-3 space-y-1 overflow-y-auto">
+                {/* Logo */}
+                <div className="h-16 flex items-center px-5 border-b border-border/40">
+                    <img
+                        src={theme === 'dark' ? '/k2m-logo-new.png' : '/logo-light.png'}
+                        alt="K2M"
+                        className="h-9 w-auto"
+                    />
+                </div>
+
+                {/* Navigation */}
+                <nav className="flex-1 py-4 px-3">
+                    <div className="space-y-0.5">
                         {navItems.map((item) => {
                             const isActive = pathname === item.href
+                            const Icon = item.icon
+
                             return (
                                 <Link
                                     key={item.href}
                                     href={item.href}
                                     onClick={() => setOpen(false)}
                                 >
-                                    <Button
-                                        variant="ghost"
+                                    <div
                                         className={cn(
-                                            "w-full justify-start gap-3 px-3 py-6 rounded-xl transition-all duration-200 group relative overflow-hidden",
+                                            "flex items-center gap-3 px-3 h-10 rounded-lg transition-all duration-150 relative",
                                             isActive
-                                                ? "bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary"
-                                                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                                ? "bg-primary/10 text-primary"
+                                                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                                         )}
                                     >
                                         {isActive && (
-                                            <div className="absolute inset-y-0 left-0 w-1 bg-primary rounded-r-full" />
+                                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full" />
                                         )}
-                                        <item.icon className={cn("w-5 h-5 transition-transform group-hover:scale-110", isActive && "fill-current")} />
-                                        <span className="font-medium">{item.label}</span>
-                                    </Button>
+                                        <Icon className="w-[18px] h-[18px] shrink-0" />
+                                        <span className="text-[13px] font-medium">{item.label}</span>
+                                    </div>
                                 </Link>
                             )
                         })}
-                    </nav>
+                    </div>
+                </nav>
 
-                    <div className="p-4 border-t border-border/50">
-                        <div className="flex items-center gap-3 mb-4 px-2">
-                            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                                <span className="font-bold text-primary">
-                                    {user?.name?.[0] || "U"}
-                                </span>
+                {/* User & Logout */}
+                <div className="absolute bottom-0 left-0 right-0 p-3 border-t border-border/40 bg-sidebar">
+                    <div className="mb-3 p-3 rounded-xl bg-muted/30">
+                        <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-sm font-semibold text-white">
+                                {user?.displayName?.[0]?.toUpperCase() || "U"}
                             </div>
-                            <div className="flex-1">
-                                <p className="font-semibold text-sm">{user?.name || t.common.user}</p>
-                                <p className="text-xs text-muted-foreground">{user?.email}</p>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-foreground truncate">
+                                    {user?.displayName || "User"}
+                                </p>
+                                <p className="text-xs text-muted-foreground truncate">
+                                    {user?.email}
+                                </p>
                             </div>
                         </div>
-                        <CommandMenu />
                     </div>
+
+                    <Button
+                        variant="ghost"
+                        className="w-full justify-start gap-2 text-muted-foreground hover:text-destructive"
+                        onClick={() => {
+                            logout()
+                            setOpen(false)
+                        }}
+                    >
+                        <LogOut className="w-4 h-4" />
+                        <span className="text-sm">Sign out</span>
+                    </Button>
                 </div>
             </SheetContent>
         </Sheet>

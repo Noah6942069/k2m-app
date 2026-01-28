@@ -1,7 +1,7 @@
 "use client"
 
-import { useParams } from "next/navigation"
-import { useState } from "react"
+import { useSearchParams } from "next/navigation"
+import { useState, Suspense } from "react"
 import {
     Building2,
     ArrowLeft,
@@ -30,10 +30,10 @@ const demoDatasets = [
     { id: 3, name: "Product_Categories.csv", rows: 156, uploadedAt: "2 weeks ago" },
 ]
 
-export default function ClientDetailPage() {
-    const params = useParams()
-    const clientId = params?.id as string
-    const client = clientsData[clientId] || { name: "Unknown Client", industry: "N/A", status: "inactive" }
+function ClientDetailsContent() {
+    const searchParams = useSearchParams()
+    const clientId = searchParams.get('id')
+    const client = (clientId && clientsData[clientId]) || { name: "Unknown Client", industry: "N/A", status: "inactive" }
 
     return (
         <div className="space-y-6">
@@ -137,5 +137,13 @@ export default function ClientDetailPage() {
                 ))}
             </div>
         </div>
+    )
+}
+
+export default function ClientDetailPage() {
+    return (
+        <Suspense fallback={<div>Loading client...</div>}>
+            <ClientDetailsContent />
+        </Suspense>
     )
 }

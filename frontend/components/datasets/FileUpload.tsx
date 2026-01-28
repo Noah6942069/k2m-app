@@ -74,7 +74,8 @@ export function FileUpload({ onSuccess }: FileUploadProps) {
             })
 
             if (!response.ok) {
-                throw new Error("Upload failed")
+                const errorData = await response.json().catch(() => ({ detail: "Upload failed" }))
+                throw new Error(errorData.detail || "Upload failed")
             }
 
             setStatus("success")
@@ -93,10 +94,10 @@ export function FileUpload({ onSuccess }: FileUploadProps) {
                 }, 1000)
             }
 
-        } catch (error) {
+        } catch (error: any) {
             console.error(error)
             setStatus("error")
-            setMessage("Failed to upload. Please try again.")
+            setMessage(error.message || "Failed to upload. Please try again.")
         } finally {
             setUploading(false)
         }

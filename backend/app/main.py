@@ -23,7 +23,7 @@ def seed_demo_data(force: bool = False):
     Seeds the database with demo data if no datasets exist.
     This ensures dashboards aren't empty for new users.
     """
-    demo_csv_path = os.path.join(os.path.dirname(__file__), "..", "demo_data.csv")
+    demo_csv_path = os.path.join(os.path.dirname(__file__), "..", "assets", "demo_data.csv")
     
     if not os.path.exists(demo_csv_path):
         print("⚠️  Demo data file not found, skipping seed")

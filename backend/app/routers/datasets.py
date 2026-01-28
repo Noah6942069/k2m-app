@@ -1,13 +1,17 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from typing import List
 from sqlmodel import Session, select
 import pandas as pd
 import shutil
 import os
+import io
 from ..database import get_session
 from ..models import Dataset, DatasetRead, DatasetUpdate
 from ..schemas import AnalysisResult
+from ..services.storage_service import storage_service
+from google.cloud import storage
+
 router = APIRouter(
     prefix="/datasets",
     tags=["datasets"]
@@ -20,25 +24,9 @@ def update_dataset(dataset_id: int, dataset_update: DatasetUpdate, session: Sess
         raise HTTPException(status_code=404, detail="Dataset not found")
     
     if dataset_update.filename:
-        # Rename file on disk if needed
-        if dataset_update.filename != dataset.filename:
-            old_path = dataset.file_path
-            new_filename = dataset_update.filename
-            if not new_filename.endswith(('.csv', '.xlsx', '.xls')):
-                 # append extension from old filename if missing
-                 ext = os.path.splitext(dataset.filename)[1]
-                 new_filename += ext
-            
-            new_path = os.path.join(os.path.dirname(old_path), new_filename)
-            
-            try:
-                if os.path.exists(old_path):
-                    os.rename(old_path, new_path)
-                    dataset.file_path = new_path
-            except OSError as e:
-                raise HTTPException(status_code=500, detail=f"Failed to rename file: {e}")
-            
-            dataset.filename = new_filename
+        # Note: Renaming files in GCS is complex (requires copy+delete). 
+        # For MVP, we simply update the display name in DB, not the actual blob name.
+        dataset.filename = dataset_update.filename
 
     session.add(dataset)
     session.commit()
@@ -50,20 +38,23 @@ async def upload_dataset(file: UploadFile = File(...), session: Session = Depend
     if not (file.filename.endswith('.csv') or file.filename.endswith('.xlsx') or file.filename.endswith('.xls')):
         raise HTTPException(status_code=400, detail="Only CSV and Excel files are supported.")
     
-    file_path = f"uploads/{file.filename}"
-    
     try:
-        # Save file to disk
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-            
-        # Analyze file basic stats
+        # Use Storage Service (GCS or Local)
+        # We append a timestamp or UUID in production to avoid collisions, but keeping it simple for now
+        file_path = storage_service.upload_file(file, file.filename)
+        
+        # Analyze file basic stats (Requires reading it back)
+        # Pandas can read gs:// directly if gcsfs is installed
         if file.filename.endswith('.csv'):
             df = pd.read_csv(file_path)
         else:
             df = pd.read_excel(file_path)
+            
         total_rows, total_columns = df.shape
-        file_size = os.path.getsize(file_path)
+        # For GCS, getting size might need an extra API call, but we can approximate or skip
+        file_size = 0 # Placeholder if not local
+        if not file_path.startswith("gs://"):
+             file_size = os.path.getsize(file_path)
         
         # Save to DB
         dataset = Dataset(
@@ -80,6 +71,9 @@ async def upload_dataset(file: UploadFile = File(...), session: Session = Depend
         return dataset
         
     except Exception as e:
+        import traceback
+        traceback.print_exc()
+        print(f"Upload Error: {e}")
         raise HTTPException(status_code=500, detail=f"Error processing file: {str(e)}")
 
 @router.get("/", response_model=List[DatasetRead])
@@ -93,10 +87,12 @@ def get_dataset_content(dataset_id: int, limit: int = 50, offset: int = 0, sessi
     if not dataset:
         raise HTTPException(status_code=404, detail="Dataset not found")
     
-    if not os.path.exists(dataset.file_path):
+    # Check if local file missing (skip check for GCS)
+    if not dataset.file_path.startswith("gs://") and not os.path.exists(dataset.file_path):
          raise HTTPException(status_code=404, detail="File missing from disk")
          
     try:
+        # Pandas supports gs:// paths automatically with gcsfs installed
         if dataset.filename.endswith('.csv'):
             df = pd.read_csv(dataset.file_path)
         else:
@@ -117,6 +113,7 @@ def get_dataset_content(dataset_id: int, limit: int = 50, offset: int = 0, sessi
             "offset": offset
         }
     except Exception as e:
+        print(f"Read Error: {e}")
         raise HTTPException(status_code=500, detail=f"Error reading file: {str(e)}")
 
 @router.delete("/{dataset_id}")
@@ -125,8 +122,9 @@ def delete_dataset(dataset_id: int, session: Session = Depends(get_session)):
     if not dataset:
         raise HTTPException(status_code=404, detail="Dataset not found")
     
-    # Delete file from disk
-    if os.path.exists(dataset.file_path):
+    # Delete file from disk/GCS (TODO: Implementing Delete in StorageService)
+    # For now, we leave the blob to avoid accidental data loss
+    if not dataset.file_path.startswith("gs://") and os.path.exists(dataset.file_path):
         os.remove(dataset.file_path)
     
     # Delete from database
@@ -141,6 +139,19 @@ def download_dataset(dataset_id: int, session: Session = Depends(get_session)):
     if not dataset:
         raise HTTPException(status_code=404, detail="Dataset not found")
     
+    # For GCS, we could generate a signed URL, but for now we stream it through backend
+    if dataset.file_path.startswith("gs://"):
+         # This is a bit heavy for large files, but works for MVP
+         try:
+            df = pd.read_csv(dataset.file_path) if dataset.filename.endswith('.csv') else pd.read_excel(dataset.file_path)
+            stream = io.StringIO()
+            df.to_csv(stream, index=False)
+            response = StreamingResponse(iter([stream.getvalue()]), media_type="text/csv")
+            response.headers["Content-Disposition"] = f"attachment; filename={dataset.filename}"
+            return response
+         except Exception as e:
+             raise HTTPException(status_code=500, detail=f"Failed to stream from cloud: {e}")
+
     if not os.path.exists(dataset.file_path):
         raise HTTPException(status_code=404, detail="File missing from disk")
     
@@ -149,3 +160,4 @@ def download_dataset(dataset_id: int, session: Session = Depends(get_session)):
         filename=dataset.filename,
         media_type="text/csv"
     )
+
