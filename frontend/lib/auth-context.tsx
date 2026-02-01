@@ -14,15 +14,12 @@ import { auth } from "./firebase"
 // In a real application, these roles would come from your database or custom claims.
 export type UserRole = "admin" | "client"
 
-// Configuration: Allowed emails for the closed beta / internal tool.
-// TODO: Move to a remote config or database in production.
-const ALLOWED_EMAILS = [
+// Configuration: Emails that have "Admin" access level.
+// Regular users (Clients) can be added directly in the Firebase Console without changing this list.
+const ADMIN_EMAILS = [
     "noahk2m@gmail.com",
-    "client@k2m.com",
-    "demo@k2m.com",
-    "kusak@mkprod.cz",
     "noahkaya0024@gmail.com",
-    "maxmlecka@gmail.com"
+    "kusak@mkprod.cz"
 ]
 
 export interface AppUser {
@@ -55,30 +52,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (firebaseUser) {
                 const email = firebaseUser.email || ""
 
-                // Allow users from the allowed list or the company domain
-                const isAllowed = ALLOWED_EMAILS.includes(email) || email.endsWith("@k2m-analytics.com")
+                // By default, anyone you add in the Firebase Console is allowed to log in.
+                // We determine if they are an Admin or a Client based on the ADMIN_EMAILS list.
+                const isAdmin = ADMIN_EMAILS.includes(email) || email.includes("admin") || email.endsWith("@k2m-analytics.com")
 
-                if (!isAllowed) {
-                    console.warn(`[Auth] Access denied for: ${email}`)
-                    await signOut(auth)
-                    setUser(null)
-                    // In a production app, redirect to an "Unauthorized" page or show a toast
-                } else {
-                    const isAdmin = [
-                        "noahk2m@gmail.com",
-                        "noahkaya0024@gmail.com",
-                        "kusak@mkprod.cz"
-                    ].includes(email) || email.includes("admin")
-
-                    setUser({
-                        uid: firebaseUser.uid,
-                        email: firebaseUser.email,
-                        displayName: firebaseUser.displayName,
-                        photoURL: firebaseUser.photoURL,
-                        role: isAdmin ? "admin" : "client",
-                        companyId: "demo-company-id"
-                    })
-                }
+                setUser({
+                    uid: firebaseUser.uid,
+                    email: firebaseUser.email,
+                    displayName: firebaseUser.displayName,
+                    photoURL: firebaseUser.photoURL,
+                    role: isAdmin ? "admin" : "client",
+                    companyId: "demo-company-id"
+                })
             } else {
                 setUser(null)
             }
