@@ -123,7 +123,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         >
             {/* Logo Area */}
             <div className={cn(
-                "h-14 flex items-center",
+                "h-14 flex items-center shrink-0",
                 collapsed ? "justify-center border-b-0" : "px-5 border-b border-border/40"
             )}>
                 {!collapsed && (
@@ -132,7 +132,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                             src={resolvedTheme === 'dark' ? '/k2m-logo-new.png' : '/logo-light.png'}
                             alt="K2M"
                             className={cn(
-                                "h-14 w-auto transition-all duration-300",
+                                "h-9 w-auto transition-all duration-300",
                                 resolvedTheme !== 'dark' && "mix-blend-multiply contrast-125 brightness-110"
                             )}
                         />
