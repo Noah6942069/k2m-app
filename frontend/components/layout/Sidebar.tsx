@@ -123,7 +123,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         >
             {/* Logo Area */}
             <div className={cn(
-                "h-16 flex items-center",
+                "h-14 flex items-center",
                 collapsed ? "justify-center border-b-0" : "px-5 border-b border-border/40"
             )}>
                 {!collapsed && (
