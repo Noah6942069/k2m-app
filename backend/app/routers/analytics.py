@@ -8,10 +8,12 @@ from ..database import get_session
 from ..models import Dataset
 from ..schemas import DashboardStats, ColumnStats, AdvancedStats
 from ..services.ai_service import ai_service
+from ..deps import get_current_user
 
 router = APIRouter(
     prefix="/analytics",
-    tags=["analytics"]
+    tags=["analytics"],
+    dependencies=[Depends(get_current_user)]
 )
 
 def get_column_type(series: pd.Series) -> str:

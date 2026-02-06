@@ -10,26 +10,17 @@ import { useTheme } from "next-themes"
 import { useEffect, useState } from "react"
 import { useTranslation } from "@/lib/i18n/language-context"
 import {
-    LayoutDashboard,
     Database,
     Settings,
     Menu,
-    Beaker,
     ChevronLeft,
     ChevronRight,
-    Users,
-    Building2,
-    MessageSquareText,
-    BarChart3,
-    Sparkles,
-    AlertTriangle,
-    ArrowLeftRight,
-    Target,
-    FileText,
-    Zap,
+    ChevronDown,
     Home,
-    PieChart,
-    Calculator,
+    Brain,
+    Beaker,
+    AlertTriangle,
+    Lightbulb,
     LogOut
 } from "lucide-react"
 
@@ -39,43 +30,89 @@ interface SidebarProps {
 }
 
 export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
-    const { user, isAdmin, logout } = useAuth()
+    const { user, logout } = useAuth()
     const { resolvedTheme } = useTheme()
     const { t } = useTranslation()
     const pathname = usePathname()
     const [mounted, setMounted] = useState(false)
+    const [biOpen, setBiOpen] = useState(false)
+
+    const isBiActive = pathname === "/business-intelligence" || pathname.startsWith("/analyza") || pathname.startsWith("/rizika") || pathname.startsWith("/doporuceni")
 
     useEffect(() => {
         setMounted(true)
     }, [])
 
-    // Prevent hydration mismatch
-    if (!mounted) return null
+    useEffect(() => {
+        if (isBiActive) {
+            setBiOpen(true)
+        }
+    }, [isBiActive])
 
-    const adminNavItems = [
-        { href: "/dashboard", label: t.navigation.home, icon: Home },
-        { href: "/overview", label: t.navigation.overview, icon: LayoutDashboard },
-        { href: "/bi", label: t.navigation.bi, icon: PieChart },
-        { href: "/clients", label: t.navigation.clients, icon: Users },
+    // Prevent hydration mismatch - render a skeleton that matches server HTML
+    if (!mounted) {
+        return (
+            <aside
+                className={cn(
+                    "hidden md:flex flex-col h-screen sticky top-0 bg-sidebar border-r border-border/40 transition-all duration-300 ease-out z-50",
+                    collapsed ? "w-[72px]" : "w-[260px]"
+                )}
+            >
+                <div className="flex-1" />
+            </aside>
+        )
+    }
+
+    const biSubItems = [
+        { href: "/analyza", label: "Analýza", icon: Beaker },
+        { href: "/rizika", label: "Rizika", icon: AlertTriangle },
+        { href: "/doporuceni", label: "Doporučení", icon: Lightbulb },
+    ]
+
+    const bottomNavItems = [
         { href: "/datasets", label: t.navigation.data, icon: Database },
-        { href: "/insights", label: t.navigation.insights, icon: MessageSquareText },
-        { href: "/analysis", label: t.navigation.analysis, icon: Beaker },
-        { href: "/compare", label: t.navigation.compare, icon: ArrowLeftRight },
-        { href: "/anomalies", label: t.navigation.anomalies, icon: AlertTriangle },
-        { href: "/goals", label: t.navigation.goals, icon: Target },
-        { href: "/simulation", label: t.navigation.simulation, icon: Zap },
-        { href: "/reports", label: t.navigation.reports, icon: FileText },
         { href: "/settings", label: t.navigation.settings, icon: Settings },
     ]
 
-    const clientNavItems = [
-        { href: "/dashboard", label: t.navigation.home, icon: Home },
-        { href: "/datasets", label: t.navigation.myData, icon: Database },
-        { href: "/insights", label: t.navigation.insights, icon: MessageSquareText },
-        { href: "/settings", label: t.navigation.settings, icon: Settings },
-    ]
+    const renderNavItem = (item: { href: string; label: string; icon: any }, isSubItem = false) => {
+        const isActive = pathname === item.href
+        const Icon = item.icon
 
-    const navItems = isAdmin ? adminNavItems : clientNavItems
+        return (
+            <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                    "group flex items-center gap-3 px-3 h-10 rounded-lg transition-all duration-150 relative",
+                    isActive
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
+                    collapsed && "justify-center px-0",
+                    isSubItem && !collapsed && "pl-10"
+                )}
+            >
+                {/* Active indicator */}
+                {isActive && (
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full" />
+                )}
+
+                <Icon className={cn(
+                    "w-[18px] h-[18px] shrink-0 transition-transform duration-150",
+                    isActive && "text-primary",
+                    !collapsed && "group-hover:scale-105"
+                )} />
+
+                {!collapsed && (
+                    <span className={cn(
+                        "text-[13px] font-medium truncate",
+                        isActive && "text-primary"
+                    )}>
+                        {item.label}
+                    </span>
+                )}
+            </Link>
+        )
+    }
 
     return (
         <aside
@@ -86,89 +123,97 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         >
             {/* Logo Area */}
             <div className={cn(
-                "h-16 flex items-center border-b border-border/40",
-                collapsed ? "px-4 justify-center" : "px-5"
+                "h-16 flex items-center",
+                collapsed ? "justify-center border-b-0" : "px-5 border-b border-border/40"
             )}>
-                <Link href="/dashboard" className="flex items-center gap-3">
-                    <img
-                        src={resolvedTheme === 'dark' ? '/k2m-logo-new.png' : '/logo-light.png'}
-                        alt="K2M"
-                        className={cn(
-                            "transition-all duration-300",
-                            resolvedTheme !== 'dark' && "mix-blend-multiply contrast-125 brightness-110",
-                            collapsed ? "h-9 w-auto" : "h-11 w-auto"
-                        )}
-                    />
-                </Link>
+                {!collapsed && (
+                    <Link href="/dashboard" className="flex items-center gap-3">
+                        <img
+                            src={resolvedTheme === 'dark' ? '/k2m-logo-new.png' : '/logo-light.png'}
+                            alt="K2M"
+                            className={cn(
+                                "h-14 w-auto transition-all duration-300",
+                                resolvedTheme !== 'dark' && "mix-blend-multiply contrast-125 brightness-110"
+                            )}
+                        />
+                    </Link>
+                )}
             </div>
-
             {/* Navigation */}
             <nav className="flex-1 py-4 px-3 overflow-y-auto scrollbar-thin">
                 <div className="space-y-0.5">
-                    {navItems.map((item) => {
-                        const isActive = pathname === item.href
-                        const Icon = item.icon
+                    {/* Home */}
+                    {renderNavItem({ href: "/dashboard", label: t.navigation.home, icon: Home })}
 
-                        return (
-                            <Link key={item.href} href={item.href}>
-                                <div
-                                    className={cn(
-                                        "group flex items-center gap-3 px-3 h-10 rounded-lg transition-all duration-150 relative",
-                                        isActive
-                                            ? "bg-primary/10 text-primary"
+                    {/* Business Intelligence with dropdown */}
+                    <div>
+                        <div className="flex items-center">
+                            {/* Clickable link to BI page */}
+                            <Link
+                                href="/business-intelligence"
+                                className={cn(
+                                    "flex-1 group flex items-center gap-3 px-3 h-10 rounded-l-lg transition-all duration-150 relative",
+                                    pathname === "/business-intelligence"
+                                        ? "bg-primary/10 text-primary"
+                                        : isBiActive
+                                            ? "bg-muted/30 text-foreground"
                                             : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
-                                        collapsed && "justify-center px-0"
+                                    collapsed && "justify-center px-0 rounded-lg"
+                                )}
+                            >
+                                {pathname === "/business-intelligence" && (
+                                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full" />
+                                )}
+                                <Brain className={cn(
+                                    "w-[18px] h-[18px] shrink-0",
+                                    (pathname === "/business-intelligence" || isBiActive) && "text-primary"
+                                )} />
+                                {!collapsed && (
+                                    <span className={cn(
+                                        "text-[13px] font-medium truncate",
+                                        pathname === "/business-intelligence" && "text-primary"
+                                    )}>
+                                        Business Intelligence
+                                    </span>
+                                )}
+                            </Link>
+                            {/* Dropdown toggle button */}
+                            {!collapsed && (
+                                <button
+                                    onClick={() => setBiOpen(!biOpen)}
+                                    className={cn(
+                                        "h-10 px-2 rounded-r-lg transition-colors",
+                                        isBiActive
+                                            ? "bg-muted/30 text-foreground hover:bg-muted/50"
+                                            : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                                     )}
                                 >
-                                    {/* Active indicator */}
-                                    {isActive && (
-                                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full" />
-                                    )}
-
-                                    <Icon className={cn(
-                                        "w-[18px] h-[18px] shrink-0 transition-transform duration-150",
-                                        isActive && "text-primary",
-                                        !collapsed && "group-hover:scale-105"
+                                    <ChevronDown className={cn(
+                                        "w-4 h-4 transition-transform",
+                                        biOpen && "rotate-180"
                                     )} />
+                                </button>
+                            )}
+                        </div>
 
-                                    {!collapsed && (
-                                        <span className={cn(
-                                            "text-[13px] font-medium truncate",
-                                            isActive && "text-primary"
-                                        )}>
-                                            {item.label}
-                                        </span>
-                                    )}
-                                </div>
-                            </Link>
-                        )
-                    })}
+                        {/* Sub items */}
+                        {biOpen && !collapsed && (
+                            <div className="mt-0.5 space-y-0.5">
+                                {biSubItems.map((item) => renderNavItem(item, true))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Bottom nav items */}
+                    {bottomNavItems.map((item) => renderNavItem(item))}
                 </div>
             </nav>
 
-            {/* Footer - User & Collapse */}
+            {/* Footer - Collapse */}
             <div className={cn(
                 "border-t border-border/40",
                 collapsed ? "p-2" : "p-3"
             )}>
-                {/* User Card */}
-                {!collapsed && (
-                    <div className="mb-3 p-3 rounded-xl bg-muted/30 border border-border/40">
-                        <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-sm font-semibold text-white">
-                                {user?.displayName?.[0]?.toUpperCase() || "U"}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-foreground truncate">
-                                    {user?.displayName || "User"}
-                                </p>
-                                <p className="text-xs text-muted-foreground truncate">
-                                    {user?.email}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                )}
 
                 {/* Collapse/Expand Button */}
                 <button
@@ -194,42 +239,23 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
 
 // Mobile Sidebar
 export function MobileSidebar() {
-    const { user, isAdmin, logout } = useAuth()
+    const { user, logout } = useAuth()
     const { theme } = useTheme()
     const { t } = useTranslation()
     const pathname = usePathname()
     const [open, setOpen] = useState(false)
 
-    const adminNavItems = [
+    const mainNavItems = [
         { href: "/dashboard", label: t.navigation.home, icon: Home },
-        { href: "/overview", label: t.navigation.overview, icon: LayoutDashboard },
-        { href: "/bi", label: t.navigation.bi, icon: PieChart },
-        { href: "/clients", label: t.navigation.clients, icon: Users },
+        { href: "/analyza", label: "Analýza", icon: Beaker },
+        { href: "/rizika", label: "Rizika", icon: AlertTriangle },
+        { href: "/doporuceni", label: "Doporučení", icon: Lightbulb },
+    ]
+
+    const bottomNavItems = [
         { href: "/datasets", label: t.navigation.data, icon: Database },
-        { href: "/insights", label: t.navigation.insights, icon: MessageSquareText },
-        { href: "/analysis", label: t.navigation.analysis, icon: Beaker },
-        { href: "/compare", label: t.navigation.compare, icon: ArrowLeftRight },
-        { href: "/goals", label: t.navigation.goals, icon: Target },
-        { href: "/simulation", label: "Simulation", icon: Calculator },
-        { href: "/reports", label: t.navigation.reports, icon: FileText },
         { href: "/settings", label: t.navigation.settings, icon: Settings },
     ]
-
-    const clientNavItems = [
-        { href: "/dashboard", label: t.navigation.home, icon: Home },
-        { href: "/overview", label: t.navigation.overview, icon: LayoutDashboard },
-        { href: "/bi", label: t.navigation.bi, icon: PieChart },
-        { href: "/datasets", label: t.navigation.myData, icon: Database },
-        { href: "/insights", label: t.navigation.insights, icon: MessageSquareText },
-        { href: "/chart-builder", label: t.navigation.chartBuilder, icon: BarChart3 },
-        { href: "/compare", label: t.navigation.compare, icon: ArrowLeftRight },
-        { href: "/goals", label: t.navigation.goals, icon: Target },
-        { href: "/simulation", label: "Simulation", icon: Calculator },
-        { href: "/reports", label: t.navigation.reports, icon: FileText },
-        { href: "/settings", label: t.navigation.settings, icon: Settings },
-    ]
-
-    const navItems = isAdmin ? adminNavItems : clientNavItems
 
     return (
         <Sheet open={open} onOpenChange={setOpen}>
@@ -250,31 +276,47 @@ export function MobileSidebar() {
                     <img
                         src={theme === 'dark' ? '/k2m-logo-new.png' : '/logo-light.png'}
                         alt="K2M"
-                        className="h-9 w-auto"
+                        className="h-12 w-auto"
                     />
                 </div>
 
                 {/* Navigation */}
                 <nav className="flex-1 py-4 px-3">
                     <div className="space-y-0.5">
-                        {navItems.map((item) => {
+                        {/* Main nav items */}
+                        {mainNavItems.map((item) => {
                             const isActive = pathname === item.href
                             const Icon = item.icon
-
                             return (
-                                <Link
-                                    key={item.href}
-                                    href={item.href}
-                                    onClick={() => setOpen(false)}
-                                >
-                                    <div
-                                        className={cn(
-                                            "flex items-center gap-3 px-3 h-10 rounded-lg transition-all duration-150 relative",
-                                            isActive
-                                                ? "bg-primary/10 text-primary"
-                                                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                                <Link key={item.href} href={item.href} onClick={() => setOpen(false)}>
+                                    <div className={cn(
+                                        "flex items-center gap-3 px-3 h-10 rounded-lg transition-all duration-150 relative",
+                                        isActive
+                                            ? "bg-primary/10 text-primary"
+                                            : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                                    )}>
+                                        {isActive && (
+                                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full" />
                                         )}
-                                    >
+                                        <Icon className="w-[18px] h-[18px] shrink-0" />
+                                        <span className="text-[13px] font-medium">{item.label}</span>
+                                    </div>
+                                </Link>
+                            )
+                        })}
+
+                        {/* Bottom nav items */}
+                        {bottomNavItems.map((item) => {
+                            const isActive = pathname === item.href
+                            const Icon = item.icon
+                            return (
+                                <Link key={item.href} href={item.href} onClick={() => setOpen(false)}>
+                                    <div className={cn(
+                                        "flex items-center gap-3 px-3 h-10 rounded-lg transition-all duration-150 relative",
+                                        isActive
+                                            ? "bg-primary/10 text-primary"
+                                            : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                                    )}>
                                         {isActive && (
                                             <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full" />
                                         )}

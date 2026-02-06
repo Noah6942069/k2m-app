@@ -546,7 +546,6 @@
 
 .kpi-card .kpi-value {
   @apply text-3xl font-bold mt-4;
-  font-family: 'Space Grotesk', sans-serif;
 }
 
 /* ===== CHART ENHANCEMENTS ===== */

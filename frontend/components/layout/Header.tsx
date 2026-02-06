@@ -19,37 +19,13 @@ export function Header() {
     return (
         <header className="sticky top-0 z-40 h-14 bg-background/80 backdrop-blur-md border-b border-border/40">
             <div className="flex items-center justify-between h-full px-4 md:px-6">
-                {/* Left: Mobile Menu + Search */}
+                {/* Left: Mobile Menu */}
                 <div className="flex items-center gap-3">
                     <MobileSidebar />
-
-                    {/* Search Bar - Minimal Style */}
-                    <div className="hidden md:flex items-center">
-                        <button
-                            className="group flex items-center gap-2.5 px-3 py-2 rounded-lg bg-muted/40 hover:bg-muted/60 border border-transparent hover:border-border/50 text-muted-foreground transition-all duration-150 w-[280px]"
-                        >
-                            <Search className="w-4 h-4" />
-                            <span className="text-[13px]">
-                                Search...
-                            </span>
-                            <div className="ml-auto flex items-center gap-1 text-[11px] text-muted-foreground/70">
-                                <kbd className="px-1.5 py-0.5 rounded bg-background/80 border border-border/50 font-mono"><ModifierKey /></kbd>
-                                <kbd className="px-1.5 py-0.5 rounded bg-background/80 border border-border/50 font-mono">K</kbd>
-                            </div>
-                        </button>
-                    </div>
                 </div>
 
                 {/* Right: Actions */}
                 <div className="flex items-center gap-1.5">
-                    {/* Mobile Search */}
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="md:hidden text-muted-foreground hover:text-foreground h-9 w-9"
-                    >
-                        <Search className="w-4 h-4" />
-                    </Button>
 
                     {/* Language Switcher */}
                     <LanguageSwitcher />

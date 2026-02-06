@@ -11,10 +11,12 @@ from ..models import Dataset, DatasetRead, DatasetUpdate
 from ..schemas import AnalysisResult
 from ..services.storage_service import storage_service
 from google.cloud import storage
+from ..deps import get_current_user
 
 router = APIRouter(
     prefix="/datasets",
-    tags=["datasets"]
+    tags=["datasets"],
+    dependencies=[Depends(get_current_user)]
 )
 
 @router.patch("/{dataset_id}", response_model=DatasetRead)

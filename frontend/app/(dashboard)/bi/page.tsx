@@ -208,12 +208,52 @@ export default function BIAnalyticsPage() {
 
     if (loading) {
         return (
-            <div className="flex h-[60vh] items-center justify-center">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center animate-pulse">
-                        <Brain className="w-6 h-6 text-primary" />
+            <div className="space-y-6 pb-20">
+                {/* Header Skeleton */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                            <div className="w-10 h-10 rounded-xl bg-muted animate-pulse" />
+                            <div className="h-8 w-48 bg-muted rounded-lg animate-pulse" />
+                        </div>
+                        <div className="h-4 w-64 bg-muted rounded animate-pulse" />
                     </div>
-                    <p className="text-muted-foreground font-medium">{t.common.loading}</p>
+                    <div className="flex gap-2">
+                        <div className="h-10 w-40 bg-muted rounded-lg animate-pulse" />
+                        <div className="h-10 w-32 bg-muted rounded-lg animate-pulse" />
+                    </div>
+                </div>
+
+                {/* Stats Grid Skeleton */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {[1, 2, 3, 4].map((i) => (
+                        <div key={i} className="rounded-2xl border border-border bg-card p-6 space-y-4">
+                            <div className="h-4 w-24 bg-muted rounded animate-pulse" />
+                            <div className="h-10 w-32 bg-muted rounded animate-pulse" />
+                            <div className="h-3 w-20 bg-muted rounded animate-pulse" />
+                        </div>
+                    ))}
+                </div>
+
+                {/* Charts Grid Skeleton */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {[1, 2].map((i) => (
+                        <div key={i} className="rounded-2xl border border-border bg-card p-6 space-y-4">
+                            <div className="flex items-center justify-between">
+                                <div className="h-5 w-32 bg-muted rounded animate-pulse" />
+                                <div className="h-8 w-24 bg-muted rounded-md animate-pulse" />
+                            </div>
+                            <div className="h-[250px] flex items-end gap-2 pt-8">
+                                {[40, 65, 45, 80, 55, 70, 50, 75, 60, 85, 45, 70].map((height, j) => (
+                                    <div
+                                        key={j}
+                                        className="flex-1 bg-muted rounded-t-md animate-pulse"
+                                        style={{ height: `${height}%` }}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </div>
         )
@@ -251,9 +291,9 @@ export default function BIAnalyticsPage() {
                     <Button variant="outline" size="sm">
                         <Download className="w-4 h-4 mr-2" /> {t.bi.exportReport}
                     </Button>
-                    <Link href="/insights">
+                    <Link href="/intelligence/analysis">
                         <Button className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90">
-                            <Sparkles className="w-4 h-4 mr-2" /> {t.home.askAI}
+                            <Sparkles className="w-4 h-4 mr-2" /> {t.home.runAnalysis}
                         </Button>
                     </Link>
                 </div>

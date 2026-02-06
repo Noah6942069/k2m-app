@@ -11,6 +11,8 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 import shutil
 import pandas as pd
+import firebase_admin
+from firebase_admin import credentials
 
 from .database import create_db_and_tables, engine
 from .models import Dataset
@@ -69,6 +71,18 @@ async def lifespan(app: FastAPI):
     # Startup
     create_db_and_tables()
     os.makedirs("uploads", exist_ok=True)
+
+    # Initialize Firebase Admin
+    try:
+        if not firebase_admin._apps:
+            # Tries to find GOOGLE_APPLICATION_CREDENTIALS in env or uses default
+            # If explicit key file is needed for local dev without env var:
+            # cred = credentials.Certificate("path/to/key.json")
+            # firebase_admin.initialize_app(cred)
+            firebase_admin.initialize_app()
+            print("🔐 Firebase Admin initialized")
+    except Exception as e:
+        print(f"⚠️ Firebase Admin init warning: {e}")
     
     # Try auto-seed (non-forcing)
     seed_demo_data(force=False)

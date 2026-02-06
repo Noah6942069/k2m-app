@@ -1,5 +1,5 @@
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
+import { getAuth, Auth } from "firebase/auth";
 
 const firebaseConfig = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -11,8 +11,24 @@ const firebaseConfig = {
     measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
-// Singleton pattern to prevent multiple initializations
-const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-const auth = getAuth(app);
+// Singleton pattern to prevent multiple initializations with error handling
+let app: FirebaseApp | null = null;
+let auth: Auth | null = null;
+
+try {
+    app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+    auth = getAuth(app);
+} catch (error) {
+    console.error("[Firebase] Failed to initialize Firebase:", error);
+}
+
+// Initialize Performance Monitoring (only in browser)
+let perf;
+if (typeof window !== "undefined" && app) {
+    // Dynamically import to avoid SSR issues or check window
+    import("firebase/performance").then(({ getPerformance }) => {
+        perf = getPerformance(app!);
+    }).catch(e => console.error("Firebase Perf init failed", e));
+}
 
 export { app, auth };

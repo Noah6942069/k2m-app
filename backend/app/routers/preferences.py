@@ -5,10 +5,12 @@ from datetime import datetime
 from ..database import get_session
 from ..models import DashboardPreference
 from ..schemas import DashboardPreferenceBase, DashboardPreferenceRead
+from ..deps import get_current_user
 
 router = APIRouter(
     prefix="/preferences",
-    tags=["preferences"]
+    tags=["preferences"],
+    dependencies=[Depends(get_current_user)]
 )
 
 # Default widget configuration

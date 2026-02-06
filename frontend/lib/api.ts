@@ -1,3 +1,5 @@
+import { auth } from './firebase';
+
 /**
  * K2M Analytics - API Configuration
  * ==================================
@@ -17,18 +19,35 @@ export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost
  * @param options - Fetch options
  * @returns Promise with JSON response
  */
+/**
+ * Generic fetch wrapper with error handling and automatic auth token injection.
+ * @param endpoint - API endpoint (without base URL)
+ * @param options - Fetch options
+ * @returns Promise with JSON response
+ */
 export async function apiFetch<T>(
     endpoint: string,
     options?: RequestInit
 ): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
+    const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+    };
+
+    // Auto-inject auth token if user is logged in
+    if (auth && auth.currentUser) {
+        try {
+            const token = await auth.currentUser.getIdToken();
+            (headers as any)['Authorization'] = `Bearer ${token}`;
+        } catch (e) {
+            console.warn("Failed to get auth token", e);
+        }
+    }
 
     const response = await fetch(url, {
         ...options,
-        headers: {
-            'Content-Type': 'application/json',
-            ...options?.headers,
-        },
+        headers,
     });
 
     if (!response.ok) {
@@ -80,8 +99,19 @@ export async function apiUpload<T>(endpoint: string, file: File): Promise<T> {
     const formData = new FormData();
     formData.append('file', file);
 
+    const headers: HeadersInit = {};
+    if (auth && auth.currentUser) {
+        try {
+            const token = await auth.currentUser.getIdToken();
+            (headers as any)['Authorization'] = `Bearer ${token}`;
+        } catch (e) {
+            console.warn("Failed to get auth token", e);
+        }
+    }
+
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
+        headers,
         body: formData,
         // Don't set Content-Type header - browser will set it with boundary
     });

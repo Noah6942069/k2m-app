@@ -9,12 +9,15 @@ const plusJakarta = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta",
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700", "800"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
   title: "K2M Analytics",
   description: "AI-Powered Data Analytics Platform",
 };
+
+import { ProgressProvider } from "@/components/providers/progress-provider";
 
 export default function RootLayout({
   children,
@@ -32,7 +35,9 @@ export default function RootLayout({
         >
           <LanguageProvider>
             <AuthProvider>
-              {children}
+              <ProgressProvider>
+                {children}
+              </ProgressProvider>
             </AuthProvider>
           </LanguageProvider>
         </ThemeProvider>

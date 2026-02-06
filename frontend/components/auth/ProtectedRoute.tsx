@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/lib/auth-context"
 import { useRouter } from "next/navigation"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Sparkles } from "lucide-react"
 
 interface ProtectedRouteProps {
@@ -14,6 +14,26 @@ export function ProtectedRoute({ children, adminOnly = false }: ProtectedRoutePr
     const { user, loading, isAdmin } = useAuth()
     const router = useRouter()
     const hasRedirected = useRef(false)
+    const [timedOut, setTimedOut] = useState(false)
+
+    // Timeout mechanism: if auth doesn't resolve in 5 seconds, redirect to login
+    useEffect(() => {
+        const timeout = setTimeout(() => {
+            if (loading) {
+                console.warn("[ProtectedRoute] Auth loading timeout - redirecting to login")
+                setTimedOut(true)
+            }
+        }, 5000)
+
+        return () => clearTimeout(timeout)
+    }, [loading])
+
+    useEffect(() => {
+        if (timedOut && !hasRedirected.current) {
+            hasRedirected.current = true
+            router.push("/login")
+        }
+    }, [timedOut, router])
 
     useEffect(() => {
         if (!loading && !hasRedirected.current) {
@@ -28,7 +48,7 @@ export function ProtectedRoute({ children, adminOnly = false }: ProtectedRoutePr
     }, [user, loading, isAdmin, adminOnly]) // eslint-disable-line react-hooks/exhaustive-deps
 
     // Loading state
-    if (loading) {
+    if (loading && !timedOut) {
         return (
             <div className="min-h-screen bg-[#0d0d12] flex items-center justify-center">
                 <div className="flex flex-col items-center gap-4">
@@ -41,8 +61,8 @@ export function ProtectedRoute({ children, adminOnly = false }: ProtectedRoutePr
         )
     }
 
-    // Not authenticated
-    if (!user) {
+    // Not authenticated or timed out
+    if (!user || timedOut) {
         return null
     }
 

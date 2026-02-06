@@ -6,10 +6,12 @@ import pandas as pd
 import os
 from ..database import get_session
 from ..models import Dataset
+from ..deps import get_current_user
 
 router = APIRouter(
     prefix="/visualizations",
-    tags=["visualizations"]
+    tags=["visualizations"],
+    dependencies=[Depends(get_current_user)]
 )
 
 class ChartData(BaseModel):
