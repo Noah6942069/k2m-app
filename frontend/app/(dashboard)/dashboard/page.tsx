@@ -146,7 +146,7 @@ function DashboardContent() {
             <CommandPalette />
 
             <div className="flex-1 relative overflow-hidden">
-                <div className="relative max-w-[1600px] mx-auto px-6 md:px-10 w-full flex flex-col justify-between min-h-[calc(100vh-140px)]">
+                <div className="relative max-w-[1600px] mx-auto px-6 md:px-10 w-full flex flex-col gap-8 md:gap-10 py-4 md:py-6 min-h-[calc(100vh-140px)]">
 
                     {/* ═══════════════════════════════════════════ */}
                     {/* SECTION 1: Health Score Circle              */}
