@@ -4,7 +4,7 @@ import { MobileSidebar } from "./Sidebar"
 import { NotificationPanel } from "./NotificationPanel"
 import { Button } from "@/components/ui/button"
 import { ModifierKey } from "@/components/ui/modifier-key"
-import { Search, User, LogOut, ChevronDown, Settings } from "lucide-react"
+import { MagnifyingGlass, User, SignOut, CaretDown, Gear } from "@phosphor-icons/react"
 import { useAuth } from "@/lib/auth-context"
 import { useState } from "react"
 import Link from "next/link"
@@ -56,10 +56,10 @@ export function Header() {
                             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-sm font-medium text-white">
                                 {user?.displayName?.[0]?.toUpperCase() || "U"}
                             </div>
-                            <ChevronDown className={cn(
+                            <CaretDown className={cn(
                                 "w-3.5 h-3.5 text-muted-foreground hidden md:block transition-transform duration-150",
                                 showUserMenu && "rotate-180"
-                            )} />
+                            )} weight="duotone" />
                         </button>
 
                         {/* Dropdown */}
@@ -82,7 +82,7 @@ export function Header() {
                                         onClick={() => setShowUserMenu(false)}
                                         className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
                                     >
-                                        <Settings className="w-4 h-4" />
+                                        <Gear className="w-4 h-4" weight="duotone" />
                                         Settings
                                     </Link>
 
@@ -93,7 +93,7 @@ export function Header() {
                                         }}
                                         className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                                     >
-                                        <LogOut className="w-4 h-4" />
+                                        <SignOut className="w-4 h-4" weight="duotone" />
                                         Sign out
                                     </button>
                                 </div>

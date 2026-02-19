@@ -10,7 +10,6 @@ from ..deps import get_current_user
 router = APIRouter(
     prefix="/preferences",
     tags=["preferences"],
-    dependencies=[Depends(get_current_user)]
 )
 
 # Default widget configuration
@@ -30,8 +29,11 @@ DEFAULT_WIDGETS = {
 
 
 @router.get("/dashboard/{user_email}", response_model=DashboardPreferenceRead)
-def get_dashboard_preferences(user_email: str, session: Session = Depends(get_session)):
-    """Get dashboard widget preferences for a user"""
+def get_dashboard_preferences(user_email: str, session: Session = Depends(get_session), current_user: dict = Depends(get_current_user)):
+    """Get dashboard widget preferences for a user (users can only access their own)"""
+    # Users can only fetch their own preferences; admins can fetch any
+    if current_user.get("role") != "admin" and current_user.get("email") != user_email:
+        raise HTTPException(status_code=403, detail="Access denied")
     statement = select(DashboardPreference).where(DashboardPreference.user_email == user_email)
     pref = session.exec(statement).first()
     
@@ -59,10 +61,13 @@ def get_dashboard_preferences(user_email: str, session: Session = Depends(get_se
 
 @router.put("/dashboard/{user_email}", response_model=DashboardPreferenceRead)
 def save_dashboard_preferences(
-    user_email: str, 
+    user_email: str,
     preferences: DashboardPreferenceBase,
-    session: Session = Depends(get_session)
+    session: Session = Depends(get_session),
+    current_user: dict = Depends(get_current_user)
 ):
+    if current_user.get("role") != "admin" and current_user.get("email") != user_email:
+        raise HTTPException(status_code=403, detail="Access denied")
     """Save dashboard widget preferences for a user"""
     statement = select(DashboardPreference).where(DashboardPreference.user_email == user_email)
     existing = session.exec(statement).first()
@@ -94,7 +99,9 @@ def save_dashboard_preferences(
 
 
 @router.post("/dashboard/{user_email}/reset", response_model=DashboardPreferenceRead)
-def reset_dashboard_preferences(user_email: str, session: Session = Depends(get_session)):
+def reset_dashboard_preferences(user_email: str, session: Session = Depends(get_session), current_user: dict = Depends(get_current_user)):
+    if current_user.get("role") != "admin" and current_user.get("email") != user_email:
+        raise HTTPException(status_code=403, detail="Access denied")
     """Reset dashboard preferences to defaults"""
     statement = select(DashboardPreference).where(DashboardPreference.user_email == user_email)
     existing = session.exec(statement).first()

@@ -1,502 +1,489 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
 import { useTranslation } from "@/lib/i18n/language-context"
 import { useAuth } from "@/lib/auth-context"
 import { CommandPalette } from "@/components/CommandPalette"
-import {
-    CheckCircle2,
-    AlertTriangle,
-    XCircle,
-    Upload,
-    Beaker,
-    ArrowRight,
-    Sparkles,
-    Bell,
-    AlertCircle,
-    TrendingDown,
-    TrendingUp,
-    DollarSign,
-    Brain,
-    Zap,
-    Sun,
-    Moon,
-    CloudSun,
-    RefreshCw,
-    ChevronRight,
-    Users,
-    Target,
-    Calendar,
-    FileText,
-    Activity,
-    Clock,
-    Search
-} from "lucide-react"
-import { Suspense } from "react"
+import Link from "next/link"
+import { Suspense, useState, useEffect } from "react"
 import { DashboardSkeleton } from "@/components/skeletons"
+import CountUp from "@/components/ui/CountUp"
+import {
+    TrendUp, TrendDown, ChartLineUp, Users, Wallet, CurrencyDollar,
+    ArrowUpRight, ArrowDownRight, ArrowRight, Drop
+} from "@phosphor-icons/react"
 
-// Types
-type SystemStatus = "good" | "warning" | "critical"
+// ── Palette ──
+// Purple #7C5CFC | Blue #5b8def | Teal #2dd4bf | Rose #f472b6
+const UP_COLOR = "#2dd4bf"       // teal - positive
+const UP_BG = "rgba(45,212,191,0.08)"
+const DOWN_COLOR = "#f472b6"     // rose - negative (fits purple theme)
+const DOWN_BG = "rgba(244,114,182,0.08)"
 
-// Demo KPI data
+// ── Health Score ──
+const HEALTH_SCORE = 82
+const RADIUS = 88
+const CIRCUMFERENCE = 2 * Math.PI * RADIUS
+const TIP_ANGLE = (HEALTH_SCORE / 100) * 2 * Math.PI
+const TIP_X = 100 + RADIUS * Math.cos(TIP_ANGLE)
+const TIP_Y = 100 + RADIUS * Math.sin(TIP_ANGLE)
+
+// ── KPI Data ──
 const kpiData = [
-    { id: 1, label: "Tržby", labelEn: "Revenue", value: "€2.4M", trend: "+12%", trendUp: true, icon: DollarSign },
-    { id: 2, label: "Klienti", labelEn: "Clients", value: "847", trend: "+5%", trendUp: true, icon: Users },
-    { id: 3, label: "Cíl Q1", labelEn: "Q1 Goal", value: "68%", trend: "-8%", trendUp: false, icon: Target },
-    { id: 4, label: "Datasety", labelEn: "Datasets", value: "12", trend: "active", trendUp: true, icon: FileText },
-]
-
-// Demo signals
-const demoSignals = [
     {
-        id: 1,
-        type: "critical" as const,
-        title: "Pokles cash flow",
-        titleEn: "Cash Flow Drop",
-        description: "-23% oproti minulému měsíci",
-        descriptionEn: "-23% compared to last month",
-        icon: DollarSign,
-        time: "2h",
+        titleCs: "Růst tržeb",
+        titleEn: "Revenue Growth",
+        value: 12.5,
+        suffix: "%",
+        changeDirection: "up" as const,
     },
     {
-        id: 2,
-        type: "warning" as const,
-        title: "Tržby pod cílem",
-        titleEn: "Revenue Below Target",
-        description: "Q1 cíl splněn na 68%",
-        descriptionEn: "Q1 target at 68%",
-        icon: TrendingDown,
-        time: "5h",
+        titleCs: "Zisková marže",
+        titleEn: "Profit Margin",
+        value: 23.8,
+        suffix: "%",
+        changeDirection: "up" as const,
     },
     {
-        id: 3,
-        type: "warning" as const,
-        title: "Riziko dodavatele",
-        titleEn: "Supplier Risk",
-        description: "Hlavní dodavatel hlásí zpoždění",
-        descriptionEn: "Main supplier reports delays",
-        icon: AlertCircle,
-        time: "1d",
+        titleCs: "Retence zákazníků",
+        titleEn: "Customer Retention",
+        value: 94.2,
+        suffix: "%",
+        changeDirection: "up" as const,
+    },
+    {
+        titleCs: "Nákladová efektivita",
+        titleEn: "Cost Efficiency",
+        value: 87,
+        suffix: "%",
+        changeDirection: "down" as const,
+    },
+    {
+        titleCs: "Cash Flow",
+        titleEn: "Cash Flow",
+        value: 2.4,
+        suffix: "M Kč",
+        changeDirection: "up" as const,
     },
 ]
 
-// Demo recent activity
-const recentActivity = [
-    { id: 1, action: "Nahrán dataset", actionEn: "Dataset uploaded", item: "Prodeje_Q1.xlsx", time: "před 2h", icon: Upload },
-    { id: 2, action: "AI analýza dokončena", actionEn: "AI analysis completed", item: "Cash Flow Report", time: "před 5h", icon: Brain },
-    { id: 3, action: "Nový signál", actionEn: "New signal", item: "Pokles marže", time: "včera", icon: AlertTriangle },
+// ── Alert Cards ──
+const alertCards = [
+    {
+        titleCs: "Likvidita pod minimem",
+        titleEn: "Liquidity Below Minimum",
+        descriptionCs: "Aktuální hotovostní rezerva pokrývá pouze 1.8 měsíce provozu. Doporučujeme přehodnotit krátkodobé výdaje a zvážit optimalizaci provozního kapitálu.",
+        descriptionEn: "Current cash reserve covers only 1.8 months of operations. We recommend reassessing short-term expenses and considering working capital optimization.",
+        icon: Drop,
+        accent: "blue" as const,
+        metricValue: 1.8,
+        metricLabelCs: "měsíců runway",
+        metricLabelEn: "months runway",
+        linkHref: "/rizika",
+        linkLabelCs: "Zobrazit analýzu",
+        linkLabelEn: "View analysis",
+    },
+    {
+        titleCs: "Runway a Burn Rate",
+        titleEn: "Runway & Burn Rate",
+        descriptionCs: "Měsíční burn rate vzrostl o 8% oproti předchozímu kvartálu. Při aktuálním tempu spalování máte runway přibližně 6.2 měsíce bez dalšího financování.",
+        descriptionEn: "Monthly burn rate increased by 8% compared to the previous quarter. At the current burn rate, your runway is approximately 6.2 months without additional funding.",
+        icon: TrendDown,
+        accent: "rose" as const,
+        metricValue: 6.2,
+        metricLabelCs: "měsíců do vyčerpání",
+        metricLabelEn: "months until depletion",
+        linkHref: "/rizika",
+        linkLabelCs: "Zobrazit detail",
+        linkLabelEn: "View details",
+    },
 ]
 
-// Daily goal
-const dailyGoal = {
-    cs: "Zkontrolujte cash flow analýzu",
-    en: "Review cash flow analysis",
-    href: "/intelligence/analysis"
-}
+// ── Bottom Bar Indicators ──
+const barIndicators = [
+    { labelCs: "Cash", labelEn: "Cash", direction: "up" as const },
+    { labelCs: "Runway", labelEn: "Runway", direction: "down" as const },
+    { labelCs: "Marže", labelEn: "Margin", direction: "up" as const },
+    { labelCs: "Tržby", labelEn: "Revenue", direction: "up" as const },
+    { labelCs: "Náklady", labelEn: "Costs", direction: "down" as const },
+    { labelCs: "Retence", labelEn: "Retention", direction: "up" as const },
+    { labelCs: "Konverze", labelEn: "Conversion", direction: "up" as const },
+]
 
-// AI Insight
-const aiInsight = {
-    cs: "Doporučuji prověřit cash flow tento týden – klesající trend může ohrozit Q2 investice.",
-    en: "I recommend reviewing cash flow this week – the declining trend may jeopardize Q2 investments."
+// ── Alert card color map ──
+const alertAccents = {
+    blue: {
+        border: "rgba(91,141,239,0.4)",
+        iconBg: "rgba(91,141,239,0.1)",
+        iconBorder: "rgba(91,141,239,0.2)",
+        iconText: "#5b8def",
+        metric: "#5b8def",
+    },
+    rose: {
+        border: "rgba(244,114,182,0.4)",
+        iconBg: "rgba(244,114,182,0.1)",
+        iconBorder: "rgba(244,114,182,0.2)",
+        iconText: "#f472b6",
+        metric: "#f472b6",
+    },
 }
-
-// Time-of-day greeting
-const getGreeting = (language: string): { text: string; icon: React.ComponentType<any> } => {
-    const hour = new Date().getHours()
-    if (hour >= 5 && hour < 12) {
-        return { text: language === 'cs' ? 'Dobré ráno' : 'Good morning', icon: Sun }
-    } else if (hour >= 12 && hour < 17) {
-        return { text: language === 'cs' ? 'Dobré odpoledne' : 'Good afternoon', icon: CloudSun }
-    } else {
-        return { text: language === 'cs' ? 'Dobrý večer' : 'Good evening', icon: Moon }
-    }
-}
-
 
 function DashboardContent() {
-    const { t, language } = useTranslation()
+    const { language } = useTranslation()
     const { user } = useAuth()
-    const [isRefreshing, setIsRefreshing] = useState(false)
-    const [systemStatus] = useState<SystemStatus>("warning")
+    const [circleOffset, setCircleOffset] = useState(CIRCUMFERENCE)
+    const [showTip, setShowTip] = useState(false)
 
-    const handleRefresh = () => {
-        setIsRefreshing(true)
-        setTimeout(() => setIsRefreshing(false), 1000)
-    }
-
-    const greeting = getGreeting(language)
-    const GreetingIcon = greeting.icon
-
-    const getStatusConfig = (status: SystemStatus) => {
-        switch (status) {
-            case "good":
-                return {
-                    message: t.home.statusAllGood,
-                    subMessage: t.home.noIssuesDetected,
-                    icon: CheckCircle2,
-                    orbColors: "from-emerald-500 via-emerald-400 to-teal-500",
-                    glowColor: "shadow-emerald-500/50",
-                    textColor: "text-emerald-500",
-                    borderColor: "border-emerald-500/30",
-                }
-            case "warning":
-                return {
-                    message: t.home.statusWarning,
-                    subMessage: language === 'cs' ? "Zkontrolujte signály níže" : "Review the signals below",
-                    icon: AlertTriangle,
-                    orbColors: "from-amber-500 via-orange-400 to-yellow-500",
-                    glowColor: "shadow-amber-500/50",
-                    textColor: "text-amber-500",
-                    borderColor: "border-amber-500/30",
-                }
-            case "critical":
-                return {
-                    message: t.home.statusCritical,
-                    subMessage: language === 'cs' ? "Vyžadována okamžitá akce" : "Immediate action required",
-                    icon: XCircle,
-                    orbColors: "from-red-500 via-rose-400 to-pink-500",
-                    glowColor: "shadow-red-500/50",
-                    textColor: "text-red-500",
-                    borderColor: "border-red-500/30",
-                }
-        }
-    }
-
-    const statusConfig = getStatusConfig(systemStatus)
-    const StatusIcon = statusConfig.icon
-
-    const quickActions = [
-        {
-            href: "/intelligence/analysis",
-            icon: Beaker,
-            title: language === 'cs' ? "Spustit Analýzu" : "Run Analysis",
-            description: language === 'cs' ? "AI-powered insights" : "AI-powered insights",
-            color: "violet",
-        },
-        {
-            href: "/intelligence/what-if",
-            icon: Zap,
-            title: language === 'cs' ? "Simulace" : "Simulation",
-            description: language === 'cs' ? "What-if scénáře" : "What-if scenarios",
-            color: "blue",
-        },
-        {
-            href: "/datasets",
-            icon: Upload,
-            title: language === 'cs' ? "Nahrát Data" : "Upload Data",
-            description: language === 'cs' ? "Import nových dat" : "Import new data",
-            color: "emerald",
-        },
-    ]
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setCircleOffset(CIRCUMFERENCE * (1 - HEALTH_SCORE / 100))
+        }, 200)
+        const tipTimer = setTimeout(() => setShowTip(true), 2800)
+        return () => { clearTimeout(timer); clearTimeout(tipTimer) }
+    }, [])
 
     return (
         <>
-            {/* Command Palette - Ctrl+K */}
             <CommandPalette />
 
-            <div className="flex-1 min-h-screen relative overflow-hidden">
-                {/* Background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-primary/5 pointer-events-none" />
-                <div
-                    className="absolute inset-0 opacity-[0.015] pointer-events-none"
-                    style={{
-                        backgroundImage: `radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)`,
-                        backgroundSize: '40px 40px',
-                    }}
-                />
+            <div className="flex-1 relative overflow-hidden">
+                <div className="relative max-w-[1600px] mx-auto px-6 md:px-10 w-full flex flex-col justify-between min-h-[calc(100vh-140px)]">
 
-                <div className="relative p-6 md:p-10 lg:p-14 max-w-[1800px] mx-auto">
-                    {/* Header */}
-                    <div className="flex items-start justify-between mb-10">
-                        <div>
-                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-3">
-                                <Sparkles className="w-3.5 h-3.5" />
-                                K2M Analytics
-                            </div>
-                            <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-3">
-                                <GreetingIcon className="w-7 h-7 text-primary/70" />
-                                <span suppressHydrationWarning>
-                                    {greeting.text}{user?.displayName ? `, ${user.displayName.split(' ')[0]}` : ''}
-                                </span>
-                            </h1>
-                            <p className="text-muted-foreground text-sm mt-1">
-                                {t.home.hereIsYourStatus}
-                            </p>
+                    {/* ═══════════════════════════════════════════ */}
+                    {/* SECTION 1: Health Score Circle              */}
+                    {/* ═══════════════════════════════════════════ */}
+                    <section className="flex flex-col items-center pt-2">
+                        {/* Pulse glow keyframes */}
+                        <style dangerouslySetInnerHTML={{ __html: `
+                            @keyframes scoreGlowPulse {
+                                0%, 100% { opacity: 0.18; transform: scale(1); }
+                                50% { opacity: 0.32; transform: scale(1.06); }
+                            }
+                            @keyframes tipFadeIn {
+                                from { opacity: 0; }
+                                to { opacity: 1; }
+                            }
+                        `}} />
+
+                        {/* Small label above */}
+                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[13px] font-medium mb-5 tracking-wide uppercase"
+                            style={{
+                                background: "rgba(124,92,252,0.06)",
+                                border: "1px solid rgba(124,92,252,0.12)",
+                                color: "#9F84FD",
+                            }}>
+                            {language === 'cs' ? 'Přehled společnosti' : 'Company Overview'}
                         </div>
-                    </div>
 
-                    {/* Main Grid Layout */}
-                    <div className="grid lg:grid-cols-3 gap-8 lg:gap-10">
-                        {/* Left Column - Orb + KPIs */}
-                        <div className="lg:col-span-2 space-y-8">
-                            {/* Status Orb */}
-                            <div className="flex flex-col items-center py-10">
-                                <div className="relative group">
-                                    {/* Outer glow - largest */}
-                                    <div className={`absolute inset-0 rounded-full bg-gradient-to-r ${statusConfig.orbColors} opacity-20 blur-3xl animate-pulse scale-[2]`} />
+                        {/* Circle container */}
+                        <div className="relative w-48 h-48 md:w-60 md:h-60">
+                            {/* Layer 1: Slow pulsing outer glow — purple/blue/green blend */}
+                            <div
+                                className="absolute inset-[-55px] rounded-full"
+                                style={{
+                                    background: "conic-gradient(from 200deg, rgba(16,185,129,0.25), rgba(91,141,239,0.3) 35%, rgba(124,92,252,0.4) 65%, rgba(139,108,255,0.2) 100%)",
+                                    animation: "scoreGlowPulse 5s ease-in-out infinite",
+                                    filter: "blur(30px)",
+                                }}
+                            />
+                            {/* Layer 2: Focused mid glow — purple dominant */}
+                            <div
+                                className="absolute inset-[-28px] rounded-full blur-[45px] opacity-30"
+                                style={{ background: "radial-gradient(circle, #7C5CFC 0%, #5b8def 40%, rgba(16,185,129,0.4) 65%, transparent 80%)" }}
+                            />
+                            {/* Layer 3: Tight inner glow */}
+                            <div
+                                className="absolute inset-[-10px] rounded-full blur-[22px] opacity-20"
+                                style={{ background: "radial-gradient(circle, #9F84FD 0%, transparent 55%)" }}
+                            />
 
-                                    {/* Secondary glow pulse */}
-                                    <div className={`absolute inset-0 rounded-full bg-gradient-to-r ${statusConfig.orbColors} opacity-10 blur-2xl scale-[1.6]`} />
+                            {/* SVG Ring */}
+                            <svg className="w-full h-full -rotate-90" viewBox="0 0 200 200">
+                                <defs>
+                                    {/* Arc gradient: green → blue → purple (matches app color hierarchy) */}
+                                    <linearGradient id="scoreGradient" x1="0%" y1="100%" x2="100%" y2="0%">
+                                        <stop offset="0%" stopColor="#10b981" />
+                                        <stop offset="18%" stopColor="#10b981" />
+                                        <stop offset="32%" stopColor="#3b9ee0" />
+                                        <stop offset="45%" stopColor="#5b8def" />
+                                        <stop offset="60%" stopColor="#5b8def" />
+                                        <stop offset="75%" stopColor="#6a6ff5" />
+                                        <stop offset="88%" stopColor="#7C5CFC" />
+                                        <stop offset="100%" stopColor="#8B6CFF" />
+                                    </linearGradient>
+                                    {/* Arc glow filter */}
+                                    <filter id="arcGlow" x="-20%" y="-20%" width="140%" height="140%">
+                                        <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
+                                        <feMerge>
+                                            <feMergeNode in="blur" />
+                                            <feMergeNode in="SourceGraphic" />
+                                        </feMerge>
+                                    </filter>
+                                    {/* Tip dot glow filter */}
+                                    <filter id="dotGlow" x="-100%" y="-100%" width="300%" height="300%">
+                                        <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur" />
+                                        <feMerge>
+                                            <feMergeNode in="blur" />
+                                            <feMergeNode in="blur" />
+                                            <feMergeNode in="SourceGraphic" />
+                                        </feMerge>
+                                    </filter>
+                                    {/* Inner glass gradient */}
+                                    <radialGradient id="innerGlass" cx="50%" cy="40%" r="50%">
+                                        <stop offset="0%" stopColor="rgba(124,92,252,0.04)" />
+                                        <stop offset="100%" stopColor="rgba(7,3,18,0.5)" />
+                                    </radialGradient>
+                                </defs>
 
-                                    {/* Rotating outer ring - slow */}
-                                    <div
-                                        className={`absolute inset-[-16px] rounded-full border-2 border-dashed ${statusConfig.borderColor} opacity-40`}
-                                        style={{ animation: 'spin 30s linear infinite' }}
+                                {/* Outer decorative ring */}
+                                <circle cx="100" cy="100" r="97" fill="none" stroke="rgba(124,92,252,0.06)" strokeWidth="0.5" />
+
+                                {/* Inner glass disc */}
+                                <circle cx="100" cy="100" r="78" fill="url(#innerGlass)" stroke="rgba(124,92,252,0.08)" strokeWidth="0.5" />
+
+                                {/* Track ring */}
+                                <circle
+                                    cx="100" cy="100" r={RADIUS}
+                                    fill="none"
+                                    stroke="rgba(124,92,252,0.1)"
+                                    strokeWidth="8"
+                                />
+
+                                {/* Wide soft glow behind progress */}
+                                <circle
+                                    cx="100" cy="100" r={RADIUS}
+                                    fill="none"
+                                    stroke="url(#scoreGradient)"
+                                    strokeWidth="20"
+                                    strokeLinecap="round"
+                                    strokeDasharray={CIRCUMFERENCE}
+                                    strokeDashoffset={circleOffset}
+                                    opacity="0.18"
+                                    style={{
+                                        transition: "stroke-dashoffset 2.5s cubic-bezier(0.4, 0, 0.2, 1)",
+                                        filter: "blur(12px)",
+                                    }}
+                                />
+
+                                {/* Main progress arc with glow filter */}
+                                <circle
+                                    cx="100" cy="100" r={RADIUS}
+                                    fill="none"
+                                    stroke="url(#scoreGradient)"
+                                    strokeWidth="9"
+                                    strokeLinecap="round"
+                                    strokeDasharray={CIRCUMFERENCE}
+                                    strokeDashoffset={circleOffset}
+                                    filter="url(#arcGlow)"
+                                    style={{
+                                        transition: "stroke-dashoffset 2.5s cubic-bezier(0.4, 0, 0.2, 1)",
+                                    }}
+                                />
+
+                                {/* Endpoint tip dot */}
+                                {showTip && (
+                                    <circle
+                                        cx={TIP_X}
+                                        cy={TIP_Y}
+                                        r="5"
+                                        fill="#c4b5fd"
+                                        filter="url(#dotGlow)"
+                                        style={{ animation: "tipFadeIn 0.6s ease-out" }}
                                     />
+                                )}
+                            </svg>
 
-                                    {/* Rotating inner ring - faster, opposite direction */}
-                                    <div
-                                        className={`absolute inset-[-8px] rounded-full border border-dotted ${statusConfig.borderColor} opacity-30`}
-                                        style={{ animation: 'spin 15s linear infinite reverse' }}
-                                    />
-
-                                    {/* Pulsing ring */}
-                                    <div
-                                        className={`absolute inset-[-24px] rounded-full border-2 ${statusConfig.borderColor} animate-ping opacity-15`}
-                                        style={{ animationDuration: '3s' }}
-                                    />
-
-                                    {/* Inner glow layer */}
-                                    <div className={`absolute inset-0 rounded-full bg-gradient-to-r ${statusConfig.orbColors} opacity-40 blur-2xl`} />
-
-                                    {/* Main Orb Container */}
-                                    <div
-                                        className={`
-                                            relative w-32 h-32 md:w-40 md:h-40
-                                            rounded-full 
-                                            bg-gradient-to-br ${statusConfig.orbColors}
-                                            shadow-2xl ${statusConfig.glowColor}
-                                            flex items-center justify-center
-                                            transition-all duration-500
-                                            group-hover:scale-110
-                                            cursor-pointer
-                                            overflow-hidden
-                                        `}
-                                    >
-                                        {/* Noise texture overlay for depth */}
-                                        <div
-                                            className="absolute inset-0 opacity-20 mix-blend-overlay"
-                                            style={{
-                                                backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' /%3E%3C/svg%3E")`,
-                                                backgroundSize: 'cover'
-                                            }}
-                                        />
-
-                                        {/* Top glass reflection - strong */}
-                                        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/50 via-white/20 to-transparent"
-                                            style={{ clipPath: 'ellipse(60% 40% at 50% -10%)' }}
-                                        />
-
-                                        {/* Main glass layer */}
-                                        <div className="absolute inset-2 rounded-full bg-gradient-to-br from-white/40 via-white/10 to-transparent" />
-
-                                        {/* Bottom shadow for depth */}
-                                        <div className="absolute inset-4 rounded-full bg-gradient-to-tl from-black/20 via-black/5 to-transparent" />
-
-                                        {/* Inner glow ring */}
-                                        <div className={`absolute inset-6 rounded-full border border-white/20 shadow-inner`} />
-
-                                        {/* Shimmer effect on hover */}
-                                        <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse" />
-
-                                        {/* Icon with enhanced drop shadow */}
-                                        <StatusIcon
-                                            className="relative w-10 h-10 md:w-12 md:h-12 text-white drop-shadow-2xl"
-                                            strokeWidth={1.5}
-                                            style={{ filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))' }}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="mt-5 text-center">
-                                    <h2 className={`text-lg md:text-xl font-semibold ${statusConfig.textColor}`}>
-                                        {statusConfig.message}
-                                    </h2>
-                                    <button
-                                        onClick={handleRefresh}
-                                        className="inline-flex items-center gap-2 mt-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                                    >
-                                        <RefreshCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`} />
-                                        {t.home.lastUpdated}: 5 {t.home.minutesAgo}
-                                    </button>
-                                </div>
+                            {/* Center content */}
+                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                <CountUp
+                                    from={0}
+                                    to={HEALTH_SCORE}
+                                    duration={2.5}
+                                    delay={0.2}
+                                    className="text-6xl md:text-7xl font-normal text-white tabular-nums tracking-tight"
+                                    // @ts-ignore
+                                    style={{ textShadow: "0 0 40px rgba(124,92,252,0.45), 0 0 80px rgba(124,92,252,0.15)" }}
+                                />
+                                <p className="text-xs md:text-sm mt-2 font-medium tracking-[0.2em] uppercase"
+                                    style={{ color: "rgba(180,160,255,0.85)" }}>
+                                    {language === 'cs' ? 'Zdraví firmy' : 'Company Health'}
+                                </p>
                             </div>
+                        </div>
 
-                            {/* Mini KPI Cards */}
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                {kpiData.map((kpi) => {
-                                    const Icon = kpi.icon
-                                    return (
-                                        <div
-                                            key={kpi.id}
-                                            className="rounded-xl border border-border/50 bg-card/50 p-5 hover:bg-card transition-colors flex flex-col justify-between min-h-[120px]"
-                                        >
-                                            <div className="flex items-center gap-2 mb-3">
-                                                <Icon className="w-4 h-4 text-muted-foreground" />
-                                                <span className="text-xs text-muted-foreground">
-                                                    {language === 'cs' ? kpi.label : kpi.labelEn}
+                        {/* Score status badge */}
+                        <div className="mt-5 text-center">
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full"
+                                style={{ background: "rgba(45,212,191,0.06)", border: "1px solid rgba(45,212,191,0.12)" }}>
+                                <div className="w-1.5 h-1.5 rounded-full" style={{ background: HEALTH_SCORE >= 70 ? UP_COLOR : HEALTH_SCORE >= 40 ? "#f59e0b" : DOWN_COLOR }} />
+                                <p className="text-[13px] font-medium" style={{ color: HEALTH_SCORE >= 70 ? "rgba(45,212,191,0.9)" : HEALTH_SCORE >= 40 ? "rgba(245,158,11,0.9)" : "rgba(244,114,182,0.9)" }}>
+                                    {HEALTH_SCORE >= 70
+                                        ? (language === 'cs' ? 'Firma je v dobré kondici' : 'Company is in good shape')
+                                        : HEALTH_SCORE >= 40
+                                            ? (language === 'cs' ? 'Vyžaduje pozornost' : 'Needs attention')
+                                            : (language === 'cs' ? 'Kritický stav' : 'Critical state')
+                                    }
+                                </p>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* ═══════════════════════════════════════════ */}
+                    {/* SECTION 2: Mini KPI Cards                   */}
+                    {/* ═══════════════════════════════════════════ */}
+                    <section>
+                        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-4">
+                            {kpiData.map((kpi, idx) => {
+                                const isUp = kpi.changeDirection === "up"
+                                return (
+                                    <div
+                                        key={idx}
+                                        className="group relative rounded-2xl backdrop-blur-sm p-5 md:p-6 transition-all duration-300 hover:scale-[1.02]"
+                                        style={{
+                                            border: "1px solid rgba(124,92,252,0.15)",
+                                            background: "rgba(124,92,252,0.06)",
+                                        }}
+                                    >
+                                        {/* Title - small, subtle */}
+                                        <p className="text-[11px] md:text-xs font-normal uppercase tracking-widest mb-4"
+                                            style={{ color: "rgba(180,160,255,0.9)" }}>
+                                            {language === 'cs' ? kpi.titleCs : kpi.titleEn}
+                                        </p>
+
+                                        {/* Main row: big number + big arrow icon */}
+                                        <div className="flex items-center justify-between">
+                                            {/* Number */}
+                                            <div className="flex items-baseline gap-1.5">
+                                                <CountUp
+                                                    from={0}
+                                                    to={kpi.value}
+                                                    duration={2}
+                                                    delay={0.1 * idx}
+                                                    className="text-[34px] md:text-[42px] font-semibold text-white tabular-nums leading-none"
+                                                />
+                                                <span className="text-xs md:text-sm font-normal" style={{ color: "rgba(180,160,255,0.85)" }}>
+                                                    {kpi.suffix}
                                                 </span>
                                             </div>
-                                            <div>
-                                                <p className="text-xl font-bold text-foreground mb-1">{kpi.value}</p>
-                                                <p className={`text-xs ${kpi.trendUp ? 'text-emerald-500' : 'text-red-500'}`}>
-                                                    {kpi.trend}
+
+                                            {/* Arrow icon - prominent */}
+                                            <div className="w-10 h-10 md:w-11 md:h-11 rounded-xl flex items-center justify-center"
+                                                style={{ background: isUp ? UP_BG : DOWN_BG }}>
+                                                {isUp
+                                                    ? <ArrowUpRight className="w-5 h-5 md:w-6 md:h-6" style={{ color: UP_COLOR }} weight="bold" />
+                                                    : <ArrowDownRight className="w-5 h-5 md:w-6 md:h-6" style={{ color: DOWN_COLOR }} weight="bold" />
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    </section>
+
+                    {/* ═══════════════════════════════════════════ */}
+                    {/* SECTION 3: Alert / Insight Cards            */}
+                    {/* ═══════════════════════════════════════════ */}
+                    <section>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+                            {alertCards.map((card, idx) => {
+                                const Icon = card.icon
+                                const a = alertAccents[card.accent]
+
+                                return (
+                                    <div
+                                        key={idx}
+                                        className="group relative rounded-2xl backdrop-blur-sm p-6 md:p-8 transition-all duration-300 hover:scale-[1.01]"
+                                        style={{
+                                            border: "1px solid rgba(124,92,252,0.15)",
+                                            borderLeft: `3px solid ${a.border}`,
+                                            background: "rgba(124,92,252,0.06)",
+                                        }}
+                                    >
+                                        {/* Header */}
+                                        <div className="flex items-start gap-4 mb-5">
+                                            <div className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
+                                                style={{
+                                                    background: a.iconBg,
+                                                    border: `1px solid ${a.iconBorder}`,
+                                                }}>
+                                                <Icon className="w-5 h-5" style={{ color: a.iconText }} weight="duotone" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="text-lg font-semibold text-white mb-1.5">
+                                                    {language === 'cs' ? card.titleCs : card.titleEn}
+                                                </h3>
+                                                <p className="text-sm leading-relaxed" style={{ color: "rgba(210,200,235,0.9)" }}>
+                                                    {language === 'cs' ? card.descriptionCs : card.descriptionEn}
                                                 </p>
                                             </div>
                                         </div>
-                                    )
-                                })}
-                            </div>
 
-                            {/* Signals */}
-                            <div>
-                                <div className="flex items-center gap-2 mb-4">
-                                    <Bell className="w-4 h-4 text-muted-foreground" />
-                                    <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-                                        {t.home.signals}
-                                    </h3>
-                                    <span className="ml-auto text-xs px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 font-medium">
-                                        {demoSignals.length}
-                                    </span>
-                                </div>
-
-                                <div className="space-y-3">
-                                    {demoSignals.map((signal) => {
-                                        const SignalIcon = signal.icon
-                                        const isCritical = signal.type === "critical"
-                                        const colorClass = isCritical
-                                            ? 'border-red-500/30 bg-red-500/5 hover:bg-red-500/10'
-                                            : 'border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10'
-                                        const iconColorClass = isCritical
-                                            ? 'bg-red-500/10 text-red-500'
-                                            : 'bg-amber-500/10 text-amber-500'
-
-                                        return (
-                                            <Link
-                                                key={signal.id}
-                                                href="/intelligence/analysis"
-                                                className={`group flex items-center gap-4 rounded-xl border ${colorClass} p-4 transition-all`}
-                                            >
-                                                <div className={`shrink-0 w-9 h-9 rounded-lg flex items-center justify-center ${iconColorClass}`}>
-                                                    <SignalIcon className="w-4 h-4" />
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <h4 className="text-sm font-medium text-foreground">
-                                                        {language === 'cs' ? signal.title : signal.titleEn}
-                                                    </h4>
-                                                    <p className="text-xs text-muted-foreground">
-                                                        {language === 'cs' ? signal.description : signal.descriptionEn}
-                                                    </p>
-                                                </div>
-                                                <span className="text-xs text-muted-foreground">{signal.time}</span>
-                                                <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                                            </Link>
-                                        )
-                                    })}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Right Column - Sidebar widgets */}
-                        <div className="space-y-8">
-                            {/* Daily Goal */}
-                            <div className="rounded-xl border border-primary/20 bg-primary/5 p-5">
-                                <div className="flex items-center gap-2 mb-3">
-                                    <Target className="w-4 h-4 text-primary" />
-                                    <h3 className="text-sm font-medium text-foreground">
-                                        {language === 'cs' ? 'Cíl dne' : 'Daily Goal'}
-                                    </h3>
-                                </div>
-                                <p className="text-sm text-muted-foreground mb-3">
-                                    {language === 'cs' ? dailyGoal.cs : dailyGoal.en}
-                                </p>
-                                <Link
-                                    href={dailyGoal.href}
-                                    className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
-                                >
-                                    {language === 'cs' ? 'Zobrazit' : 'View'}
-                                    <ArrowRight className="w-3 h-3" />
-                                </Link>
-                            </div>
-
-                            {/* AI Insight */}
-                            <Link
-                                href="/intelligence/recommendations"
-                                className="block rounded-xl border border-violet-500/20 bg-violet-500/5 p-5 hover:bg-violet-500/10 transition-colors group"
-                            >
-                                <div className="flex items-center gap-2 mb-2">
-                                    <Brain className="w-4 h-4 text-violet-500" />
-                                    <h3 className="text-sm font-medium text-foreground">AI Insight</h3>
-                                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-violet-500/20 text-violet-500 font-medium">BETA</span>
-                                </div>
-                                <p className="text-sm text-muted-foreground">
-                                    {language === 'cs' ? aiInsight.cs : aiInsight.en}
-                                </p>
-                            </Link>
-
-                            {/* Recent Activity */}
-                            <div className="rounded-xl border border-border/50 bg-card/50 p-5">
-                                <div className="flex items-center gap-2 mb-3">
-                                    <Activity className="w-4 h-4 text-muted-foreground" />
-                                    <h3 className="text-sm font-medium text-foreground">
-                                        {language === 'cs' ? 'Nedávná aktivita' : 'Recent Activity'}
-                                    </h3>
-                                </div>
-                                <div className="space-y-4">
-                                    {recentActivity.map((activity) => {
-                                        const Icon = activity.icon
-                                        return (
-                                            <div key={activity.id} className="flex items-start gap-3">
-                                                <div className="shrink-0 w-7 h-7 rounded-lg bg-muted flex items-center justify-center">
-                                                    <Icon className="w-3.5 h-3.5 text-muted-foreground" />
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-sm text-foreground truncate">
-                                                        {language === 'cs' ? activity.action : activity.actionEn}
-                                                    </p>
-                                                    <p className="text-xs text-muted-foreground">{activity.item}</p>
-                                                </div>
-                                                <span className="text-[10px] text-muted-foreground shrink-0">
-                                                    {activity.time}
+                                        {/* Bottom metric + link */}
+                                        <div className="flex items-center justify-between pt-5" style={{ borderTop: "1px solid rgba(124,92,252,0.18)" }}>
+                                            <div className="flex items-baseline gap-2">
+                                                <CountUp
+                                                    from={0}
+                                                    to={card.metricValue}
+                                                    duration={2}
+                                                    delay={0.5}
+                                                    className="text-2xl md:text-3xl font-semibold tabular-nums"
+                                                    // @ts-ignore
+                                                    style={{ color: a.metric }}
+                                                />
+                                                <span className="text-xs" style={{ color: "rgba(210,200,235,0.85)" }}>
+                                                    {language === 'cs' ? card.metricLabelCs : card.metricLabelEn}
                                                 </span>
                                             </div>
-                                        )
-                                    })}
-                                </div>
-                            </div>
-
-                            {/* Quick Actions */}
-                            <div>
-                                <div className="flex items-center gap-2 mb-3">
-                                    <TrendingUp className="w-4 h-4 text-muted-foreground" />
-                                    <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-                                        {t.home.whatNext}
-                                    </h3>
-                                </div>
-                                <div className="space-y-2">
-                                    {quickActions.map((action) => {
-                                        const ActionIcon = action.icon
-                                        return (
                                             <Link
-                                                key={action.href}
-                                                href={action.href}
-                                                className="group flex items-center gap-3 rounded-xl border border-border/50 bg-card p-3 hover:border-primary/30 hover:bg-primary/5 transition-all"
+                                                href={card.linkHref}
+                                                className="flex items-center gap-1.5 text-[13px] font-medium transition-colors"
+                                                style={{ color: "rgba(180,160,255,0.9)" }}
+                                                onMouseEnter={(e) => e.currentTarget.style.color = "#B8A4FE"}
+                                                onMouseLeave={(e) => e.currentTarget.style.color = "rgba(180,160,255,0.9)"}
                                             >
-                                                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
-                                                    <ActionIcon className="w-4 h-4 text-primary group-hover:text-white" />
-                                                </div>
-                                                <div className="flex-1">
-                                                    <h4 className="text-sm font-medium text-foreground">{action.title}</h4>
-                                                </div>
-                                                <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                {language === 'cs' ? card.linkLabelCs : card.linkLabelEn}
+                                                <ArrowRight className="w-3.5 h-3.5" weight="bold" />
                                             </Link>
-                                        )
-                                    })}
-                                </div>
-                            </div>
+                                        </div>
+                                    </div>
+                                )
+                            })}
                         </div>
-                    </div>
+                    </section>
+
+                    {/* ═══════════════════════════════════════════ */}
+                    {/* SECTION 4: Touch Bar                        */}
+                    {/* ═══════════════════════════════════════════ */}
+                    <section className="pb-2">
+                        <div
+                            className="rounded-2xl px-3 py-2.5 flex items-center justify-between overflow-x-auto scrollbar-hide"
+                            style={{
+                                border: "1px solid rgba(124,92,252,0.15)",
+                                background: "rgba(124,92,252,0.06)",
+                            }}
+                        >
+                            {barIndicators.map((item, idx) => {
+                                const isUp = item.direction === "up"
+                                return (
+                                    <div
+                                        key={idx}
+                                        className="flex items-center gap-2 px-4 md:px-5 py-2 rounded-xl shrink-0 transition-all duration-200 cursor-default"
+                                        onMouseEnter={(e) => e.currentTarget.style.background = "rgba(124,92,252,0.07)"}
+                                        onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                                    >
+                                        <span className="text-sm font-normal" style={{ color: "rgba(180,160,255,0.9)" }}>
+                                            {language === 'cs' ? item.labelCs : item.labelEn}
+                                        </span>
+                                        {isUp
+                                            ? <ArrowUpRight className="w-4 h-4" style={{ color: UP_COLOR }} weight="bold" />
+                                            : <ArrowDownRight className="w-4 h-4" style={{ color: DOWN_COLOR }} weight="bold" />
+                                        }
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    </section>
+
                 </div>
             </div>
         </>

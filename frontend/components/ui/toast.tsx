@@ -1,7 +1,7 @@
 "use client"
 
 import { createContext, useContext, useState, useCallback, ReactNode } from "react"
-import { X, CheckCircle, AlertCircle, Info, Sparkles } from "lucide-react"
+import { X, CheckCircle, WarningCircle, Info, Sparkle } from "@phosphor-icons/react"
 import { cn } from "@/lib/utils"
 
 // Toast Types
@@ -89,7 +89,7 @@ const toastConfig = {
         progressColor: "bg-emerald-500"
     },
     error: {
-        icon: AlertCircle,
+        icon: WarningCircle,
         bgColor: "bg-red-500/10 border-red-500/30",
         iconColor: "text-red-400",
         progressColor: "bg-red-500"
@@ -101,7 +101,7 @@ const toastConfig = {
         progressColor: "bg-primary"
     },
     insight: {
-        icon: Sparkles,
+        icon: Sparkle,
         bgColor: "bg-primary/10 border-primary/30",
         iconColor: "text-primary",
         progressColor: "bg-primary"

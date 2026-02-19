@@ -11,18 +11,19 @@ import { useEffect, useState } from "react"
 import { useTranslation } from "@/lib/i18n/language-context"
 import {
     Database,
-    Settings,
-    Menu,
-    ChevronLeft,
-    ChevronRight,
-    ChevronDown,
-    Home,
+    Gear,
+    List,
+    CaretLeft,
+    CaretRight,
+    CaretDown,
+    House,
     Brain,
-    Beaker,
-    AlertTriangle,
+    Flask,
+    Warning,
     Lightbulb,
-    LogOut
-} from "lucide-react"
+    Question,
+    SignOut
+} from "@phosphor-icons/react"
 
 interface SidebarProps {
     collapsed?: boolean
@@ -37,7 +38,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
     const [mounted, setMounted] = useState(false)
     const [biOpen, setBiOpen] = useState(false)
 
-    const isBiActive = pathname === "/business-intelligence" || pathname.startsWith("/analyza") || pathname.startsWith("/rizika") || pathname.startsWith("/doporuceni")
+    const isBiActive = pathname === "/business-intelligence" || pathname.startsWith("/analyza") || pathname.startsWith("/rizika") || pathname.startsWith("/doporuceni") || pathname.startsWith("/otazky")
 
     useEffect(() => {
         setMounted(true)
@@ -64,14 +65,15 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
     }
 
     const biSubItems = [
-        { href: "/analyza", label: "Analýza", icon: Beaker },
-        { href: "/rizika", label: "Rizika", icon: AlertTriangle },
+        { href: "/otazky", label: "Otázky", icon: Question },
+        { href: "/analyza", label: "Analýza", icon: Flask },
+        { href: "/rizika", label: "Rizika", icon: Warning },
         { href: "/doporuceni", label: "Doporučení", icon: Lightbulb },
     ]
 
     const bottomNavItems = [
         { href: "/datasets", label: t.navigation.data, icon: Database },
-        { href: "/settings", label: t.navigation.settings, icon: Settings },
+        { href: "/settings", label: t.navigation.settings, icon: Gear },
     ]
 
     const renderNavItem = (item: { href: string; label: string; icon: any }, isSubItem = false) => {
@@ -96,11 +98,17 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                     <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full" />
                 )}
 
-                <Icon className={cn(
-                    "w-[18px] h-[18px] shrink-0 transition-transform duration-150",
-                    isActive && "text-primary",
-                    !collapsed && "group-hover:scale-105"
-                )} />
+                <div className={cn(
+                    "w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all duration-150",
+                    isActive
+                        ? "bg-primary/15"
+                        : "bg-transparent group-hover:bg-muted/50"
+                )}>
+                    <Icon className={cn(
+                        "w-[16px] h-[16px] transition-colors duration-150",
+                        isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                    )} weight="duotone" />
+                </div>
 
                 {!collapsed && (
                     <span className={cn(
@@ -123,7 +131,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         >
             {/* Logo Area */}
             <div className={cn(
-                "h-14 flex items-center shrink-0",
+                "h-16 flex items-center",
                 collapsed ? "justify-center border-b-0" : "px-5 border-b border-border/40"
             )}>
                 {!collapsed && (
@@ -132,7 +140,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                             src={resolvedTheme === 'dark' ? '/k2m-logo-new.png' : '/logo-light.png'}
                             alt="K2M"
                             className={cn(
-                                "h-9 w-auto transition-all duration-300",
+                                "h-14 w-auto transition-all duration-300",
                                 resolvedTheme !== 'dark' && "mix-blend-multiply contrast-125 brightness-110"
                             )}
                         />
@@ -143,7 +151,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
             <nav className="flex-1 py-4 px-3 overflow-y-auto scrollbar-thin">
                 <div className="space-y-0.5">
                     {/* Home */}
-                    {renderNavItem({ href: "/dashboard", label: t.navigation.home, icon: Home })}
+                    {renderNavItem({ href: "/dashboard", label: t.navigation.home, icon: House })}
 
                     {/* Business Intelligence with dropdown */}
                     <div>
@@ -164,10 +172,17 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                                 {pathname === "/business-intelligence" && (
                                     <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full" />
                                 )}
-                                <Brain className={cn(
-                                    "w-[18px] h-[18px] shrink-0",
-                                    (pathname === "/business-intelligence" || isBiActive) && "text-primary"
-                                )} />
+                                <div className={cn(
+                                    "w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all duration-150",
+                                    (pathname === "/business-intelligence" || isBiActive)
+                                        ? "bg-primary/15"
+                                        : "bg-transparent group-hover:bg-muted/50"
+                                )}>
+                                    <Brain className={cn(
+                                        "w-[16px] h-[16px] transition-colors duration-150",
+                                        (pathname === "/business-intelligence" || isBiActive) ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                                    )} weight="duotone" />
+                                </div>
                                 {!collapsed && (
                                     <span className={cn(
                                         "text-[13px] font-medium truncate",
@@ -188,10 +203,10 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                                             : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                                     )}
                                 >
-                                    <ChevronDown className={cn(
+                                    <CaretDown className={cn(
                                         "w-4 h-4 transition-transform",
                                         biOpen && "rotate-180"
-                                    )} />
+                                    )} weight="duotone" />
                                 </button>
                             )}
                         </div>
@@ -224,10 +239,10 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                     )}
                 >
                     {collapsed ? (
-                        <ChevronRight className="w-4 h-4" />
+                        <CaretRight className="w-4 h-4" weight="duotone" />
                     ) : (
                         <>
-                            <ChevronLeft className="w-4 h-4" />
+                            <CaretLeft className="w-4 h-4" weight="duotone" />
                             <span className="text-xs font-medium">Collapse</span>
                         </>
                     )}
@@ -246,15 +261,16 @@ export function MobileSidebar() {
     const [open, setOpen] = useState(false)
 
     const mainNavItems = [
-        { href: "/dashboard", label: t.navigation.home, icon: Home },
-        { href: "/analyza", label: "Analýza", icon: Beaker },
-        { href: "/rizika", label: "Rizika", icon: AlertTriangle },
+        { href: "/dashboard", label: t.navigation.home, icon: House },
+        { href: "/otazky", label: "Otázky", icon: Question },
+        { href: "/analyza", label: "Analýza", icon: Flask },
+        { href: "/rizika", label: "Rizika", icon: Warning },
         { href: "/doporuceni", label: "Doporučení", icon: Lightbulb },
     ]
 
     const bottomNavItems = [
         { href: "/datasets", label: t.navigation.data, icon: Database },
-        { href: "/settings", label: t.navigation.settings, icon: Settings },
+        { href: "/settings", label: t.navigation.settings, icon: Gear },
     ]
 
     return (
@@ -265,7 +281,7 @@ export function MobileSidebar() {
                     size="icon"
                     className="md:hidden text-muted-foreground hover:text-foreground"
                 >
-                    <Menu className="w-5 h-5" />
+                    <List className="w-5 h-5" weight="duotone" />
                 </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-[280px] p-0 bg-sidebar border-r border-border/40">
@@ -298,7 +314,12 @@ export function MobileSidebar() {
                                         {isActive && (
                                             <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full" />
                                         )}
-                                        <Icon className="w-[18px] h-[18px] shrink-0" />
+                                        <div className={cn(
+                                            "w-7 h-7 rounded-lg flex items-center justify-center shrink-0",
+                                            isActive ? "bg-primary/15" : ""
+                                        )}>
+                                            <Icon className="w-[16px] h-[16px]" weight="duotone" />
+                                        </div>
                                         <span className="text-[13px] font-medium">{item.label}</span>
                                     </div>
                                 </Link>
@@ -320,7 +341,12 @@ export function MobileSidebar() {
                                         {isActive && (
                                             <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full" />
                                         )}
-                                        <Icon className="w-[18px] h-[18px] shrink-0" />
+                                        <div className={cn(
+                                            "w-7 h-7 rounded-lg flex items-center justify-center shrink-0",
+                                            isActive ? "bg-primary/15" : ""
+                                        )}>
+                                            <Icon className="w-[16px] h-[16px]" weight="duotone" />
+                                        </div>
                                         <span className="text-[13px] font-medium">{item.label}</span>
                                     </div>
                                 </Link>
@@ -355,7 +381,7 @@ export function MobileSidebar() {
                             setOpen(false)
                         }}
                     >
-                        <LogOut className="w-4 h-4" />
+                        <SignOut className="w-4 h-4" weight="duotone" />
                         <span className="text-sm">Sign out</span>
                     </Button>
                 </div>

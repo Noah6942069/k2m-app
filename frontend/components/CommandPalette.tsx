@@ -4,18 +4,18 @@ import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { useTranslation } from "@/lib/i18n/language-context"
 import {
-    Search,
-    LayoutDashboard,
+    MagnifyingGlass,
+    SquaresFour,
     Upload,
-    Beaker,
-    Zap,
+    Flask,
+    Lightning,
     FileText,
-    Settings,
-    TrendingUp,
+    Gear,
+    TrendUp,
     Brain,
-    AlertTriangle,
+    Warning,
     X
-} from "lucide-react"
+} from "@phosphor-icons/react"
 
 interface CommandItem {
     id: string
@@ -29,14 +29,14 @@ interface CommandItem {
 
 const commands: CommandItem[] = [
     // Navigation
-    { id: "dashboard", title: "Dashboard", titleEn: "Dashboard", icon: LayoutDashboard, href: "/dashboard", category: "Navigace" },
+    { id: "dashboard", title: "Dashboard", titleEn: "Dashboard", icon: SquaresFour, href: "/dashboard", category: "Navigace" },
     { id: "datasets", title: "Datasety", titleEn: "Datasets", icon: FileText, href: "/datasets", category: "Navigace" },
-    { id: "analysis", title: "Analýza", titleEn: "Analysis", icon: Beaker, href: "/intelligence/analysis", category: "Navigace" },
-    { id: "whatif", title: "What-If Simulace", titleEn: "What-If Simulation", icon: Zap, href: "/intelligence/what-if", category: "Navigace" },
-    { id: "risks", title: "Rizika", titleEn: "Risks", icon: AlertTriangle, href: "/intelligence/risks", category: "Navigace" },
+    { id: "analysis", title: "Analýza", titleEn: "Analysis", icon: Flask, href: "/intelligence/analysis", category: "Navigace" },
+    { id: "whatif", title: "What-If Simulace", titleEn: "What-If Simulation", icon: Lightning, href: "/intelligence/what-if", category: "Navigace" },
+    { id: "risks", title: "Rizika", titleEn: "Risks", icon: Warning, href: "/intelligence/risks", category: "Navigace" },
     { id: "recommendations", title: "Doporučení", titleEn: "Recommendations", icon: Brain, href: "/intelligence/recommendations", category: "Navigace" },
-    { id: "bi", title: "BI Dashboard", titleEn: "BI Dashboard", icon: TrendingUp, href: "/bi", category: "Navigace" },
-    { id: "settings", title: "Nastavení", titleEn: "Settings", icon: Settings, href: "/settings", category: "Navigace" },
+    { id: "bi", title: "BI Dashboard", titleEn: "BI Dashboard", icon: TrendUp, href: "/bi", category: "Navigace" },
+    { id: "settings", title: "Nastavení", titleEn: "Settings", icon: Gear, href: "/settings", category: "Navigace" },
     // Actions
     { id: "upload", title: "Nahrát nová data", titleEn: "Upload new data", icon: Upload, href: "/datasets?upload=true", category: "Akce" },
     { id: "run-analysis", title: "Spustit AI analýzu", titleEn: "Run AI analysis", icon: Brain, href: "/intelligence/analysis?run=true", category: "Akce" },
@@ -103,7 +103,7 @@ export function CommandPalette() {
                 <div className="w-full max-w-lg bg-card border border-border/50 rounded-2xl shadow-2xl overflow-hidden">
                     {/* Search Input */}
                     <div className="flex items-center gap-3 px-4 py-3 border-b border-border/50">
-                        <Search className="w-5 h-5 text-muted-foreground" />
+                        <MagnifyingGlass className="w-5 h-5 text-muted-foreground" weight="duotone" />
                         <input
                             type="text"
                             value={search}
@@ -116,7 +116,7 @@ export function CommandPalette() {
                             onClick={() => setIsOpen(false)}
                             className="p-1 rounded hover:bg-muted transition-colors"
                         >
-                            <X className="w-4 h-4 text-muted-foreground" />
+                            <X className="w-4 h-4 text-muted-foreground" weight="duotone" />
                         </button>
                     </div>
 
@@ -135,7 +135,7 @@ export function CommandPalette() {
                                             onClick={() => handleSelect(cmd)}
                                             className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted transition-colors text-left"
                                         >
-                                            <Icon className="w-4 h-4 text-muted-foreground" />
+                                            <Icon className="w-4 h-4 text-muted-foreground" weight="duotone" />
                                             <span className="text-sm text-foreground">
                                                 {language === 'cs' ? cmd.title : cmd.titleEn}
                                             </span>

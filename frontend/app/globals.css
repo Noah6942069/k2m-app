@@ -89,15 +89,15 @@
 
 /* ===== DARK MODE - K2M WEBSITE ALIGNED ===== */
 .dark {
-  /* Deep charcoal background - matches K2M website */
-  --background: #0f1219;
+  /* Deep vibrant purple background */
+  --background: #070312;
   --foreground: #ffffff;
 
-  /* Slightly elevated cards */
-  --card: #161b26;
+  /* Elevated cards with purple tint */
+  --card: #0d0a1a;
   --card-foreground: #ffffff;
 
-  --popover: #1a1f2e;
+  --popover: #100d20;
   --popover-foreground: #ffffff;
 
   /* Primary - K2M Default 500 */
@@ -105,26 +105,26 @@
   --primary-foreground: #ffffff;
 
   /* Secondary - muted dark */
-  --secondary: #1e2433;
+  --secondary: #0f0c1e;
   --secondary-foreground: #e2e8f0;
 
   /* Muted backgrounds */
-  --muted: #1a1f2e;
+  --muted: #0d0a1c;
   --muted-foreground: #94a3b8;
 
-  --accent: #252d3d;
+  --accent: #12102a;
   --accent-foreground: #ffffff;
 
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
 
   /* Borders - subtle */
-  --border: #252d3d;
-  --input: #252d3d;
+  --border: #1a1730;
+  --input: #1a1730;
   --ring: #7C5CFC;
 
   /* Sidebar */
-  --sidebar: #0f1219;
+  --sidebar: #070312;
   --sidebar-foreground: #94a3b8;
   --sidebar-accent: rgba(124, 92, 252, 0.12);
   --sidebar-accent-foreground: #B49DFE;

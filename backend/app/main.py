@@ -16,8 +16,40 @@ from firebase_admin import credentials
 
 from .database import create_db_and_tables, engine
 from .models import Dataset
-from .routers import datasets, visualizations, analytics, preferences
+from .routers import datasets, visualizations, analytics, preferences, admin
 from sqlmodel import Session, select
+import sqlite3
+
+
+def run_migrations():
+    """
+    Adds any missing columns to existing database tables.
+    Safe to run on every startup — only acts if columns are missing.
+    """
+    db_path = "database.db"
+    if not os.path.exists(db_path):
+        return  # Fresh database — tables will be created with the correct schema
+
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+
+    # Each entry: (table_name, column_name, column_definition)
+    migrations = [
+        ("dataset",             "company_id", "TEXT DEFAULT 'nexus-demo-001'"),
+        ("visualization",       "company_id", "TEXT DEFAULT 'nexus-demo-001'"),
+        ("analysislog",         "company_id", "TEXT DEFAULT 'nexus-demo-001'"),
+        ("dashboardpreference", "company_id", "TEXT DEFAULT 'nexus-demo-001'"),
+    ]
+
+    for table, column, definition in migrations:
+        try:
+            cursor.execute(f"SELECT {column} FROM {table} LIMIT 1")
+        except sqlite3.OperationalError:
+            cursor.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
+            print(f"OK: Migration — added {column} to {table}")
+
+    conn.commit()
+    conn.close()
 
 
 def seed_demo_data(force: bool = False):
@@ -28,7 +60,7 @@ def seed_demo_data(force: bool = False):
     demo_csv_path = os.path.join(os.path.dirname(__file__), "..", "assets", "demo_data.csv")
     
     if not os.path.exists(demo_csv_path):
-        print("⚠️  Demo data file not found, skipping seed")
+        print("WARN: Demo data file not found, skipping seed")
         return {"status": "error", "message": "Demo data file not found"}
     
     with Session(engine) as session:
@@ -36,7 +68,7 @@ def seed_demo_data(force: bool = False):
         if not force:
             existing = session.exec(select(Dataset)).first()
             if existing:
-                print("📊 Datasets already exist, skipping demo seed")
+                print("INFO: Datasets already exist, skipping demo seed")
                 return {"status": "skipped", "message": "Datasets already exist"}
         
         # Copy demo file to uploads folder
@@ -48,18 +80,19 @@ def seed_demo_data(force: bool = False):
         df = pd.read_csv(dest_path)
         file_size = os.path.getsize(dest_path)
         
-        # Create dataset record
+        # Create dataset record — tagged to the demo company
         dataset = Dataset(
             filename="demo_sales_data.csv",
             file_path=dest_path,
             file_size=file_size,
             total_rows=len(df),
-            total_columns=len(df.columns)
+            total_columns=len(df.columns),
+            company_id="nexus-demo-001"
         )
         session.add(dataset)
         session.commit()
         
-        print(f"✅ Demo data seeded: {len(df)} rows, {len(df.columns)} columns")
+        print(f"OK: Demo data seeded: {len(df)} rows, {len(df.columns)} columns")
         return {"status": "success", "message": f"Demo data seeded: {len(df)} rows"}
 
 @asynccontextmanager
@@ -69,7 +102,8 @@ async def lifespan(app: FastAPI):
     Runs startup tasks before yielding, cleanup tasks after.
     """
     # Startup
-    create_db_and_tables()
+    run_migrations()        # Add any missing columns to existing tables
+    create_db_and_tables()  # Create any brand-new tables
     os.makedirs("uploads", exist_ok=True)
 
     # Initialize Firebase Admin
@@ -80,19 +114,19 @@ async def lifespan(app: FastAPI):
             # cred = credentials.Certificate("path/to/key.json")
             # firebase_admin.initialize_app(cred)
             firebase_admin.initialize_app()
-            print("🔐 Firebase Admin initialized")
+            print("OK: Firebase Admin initialized")
     except Exception as e:
-        print(f"⚠️ Firebase Admin init warning: {e}")
-    
+        print(f"WARN: Firebase Admin init warning: {e}")
+
     # Try auto-seed (non-forcing)
     seed_demo_data(force=False)
-    
-    print("✅ K2M API started successfully")
-    
+
+    print("OK: K2M API started successfully")
+
     yield  # Application runs here
-    
+
     # Shutdown (cleanup if needed)
-    print("👋 K2M API shutting down")
+    print("K2M API shutting down")
 
 
 # Initialize FastAPI with metadata
@@ -117,6 +151,7 @@ app.include_router(datasets.router)
 app.include_router(visualizations.router)
 app.include_router(analytics.router)
 app.include_router(preferences.router)
+app.include_router(admin.router)
 
 
 @app.post("/seed", tags=["System"])

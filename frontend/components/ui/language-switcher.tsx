@@ -8,7 +8,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useTranslation } from "@/lib/i18n/language-context"
-import { Globe } from "lucide-react"
+import { Globe } from "@phosphor-icons/react"
 
 export function LanguageSwitcher() {
     const { language, setLanguage } = useTranslation()
@@ -17,7 +17,7 @@ export function LanguageSwitcher() {
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="w-9 h-9 rounded-full">
-                    <Globe className="h-[1.2rem] w-[1.2rem]" />
+                    <Globe className="h-[1.2rem] w-[1.2rem]" weight="duotone" />
                     <span className="sr-only">Toggle language</span>
 
                     {/* Small indicator of current lang */}
@@ -39,3 +39,4 @@ export function LanguageSwitcher() {
         </DropdownMenu>
     )
 }
+//ivana

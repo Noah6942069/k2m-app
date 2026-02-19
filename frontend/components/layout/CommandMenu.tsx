@@ -5,21 +5,21 @@ import {
     Calculator,
     Calendar,
     CreditCard,
-    Settings,
-    Smile,
+    Gear,
+    Smiley,
     User,
-    LayoutDashboard,
+    SquaresFour,
     Database,
-    MessageSquareText,
-    Beaker,
-    BarChart3,
+    ChatText,
+    Flask,
+    ChartBar,
     Sun,
     Moon,
     Laptop,
     Plus,
-    Sparkles,
-    AlertTriangle
-} from "lucide-react"
+    Sparkle,
+    Warning
+} from "@phosphor-icons/react"
 
 import {
     CommandDialog,
@@ -77,11 +77,11 @@ export function CommandMenu() {
                     <CommandEmpty>No results found.</CommandEmpty>
                     <CommandGroup heading="Suggestions">
                         <CommandItem onSelect={() => runCommand(() => router.push('/dashboard'))}>
-                            <LayoutDashboard className="mr-2 h-4 w-4" />
+                            <SquaresFour className="mr-2 h-4 w-4" />
                             <span>Dashboard</span>
                         </CommandItem>
                         <CommandItem onSelect={() => runCommand(() => router.push('/insights'))}>
-                            <MessageSquareText className="mr-2 h-4 w-4" />
+                            <ChatText className="mr-2 h-4 w-4" />
                             <span>AI Insights</span>
                         </CommandItem>
                         <CommandItem onSelect={() => runCommand(() => router.push('/datasets'))}>
@@ -89,15 +89,15 @@ export function CommandMenu() {
                             <span>Datasets</span>
                         </CommandItem>
                         <CommandItem onSelect={() => runCommand(() => router.push('/chart-builder'))}>
-                            <BarChart3 className="mr-2 h-4 w-4" />
+                            <ChartBar className="mr-2 h-4 w-4" />
                             <span>Chart Builder</span>
                         </CommandItem>
                         <CommandItem onSelect={() => runCommand(() => router.push('/data-story'))}>
-                            <Sparkles className="mr-2 h-4 w-4" />
+                            <Sparkle className="mr-2 h-4 w-4" />
                             <span>Data Story</span>
                         </CommandItem>
                         <CommandItem onSelect={() => runCommand(() => router.push('/anomalies'))}>
-                            <AlertTriangle className="mr-2 h-4 w-4" />
+                            <Warning className="mr-2 h-4 w-4" />
                             <span>Anomalies</span>
                         </CommandItem>
                     </CommandGroup>
@@ -109,7 +109,7 @@ export function CommandMenu() {
                             <CommandShortcut><ModifierKey />N</CommandShortcut>
                         </CommandItem>
                         <CommandItem onSelect={() => runCommand(() => router.push('/analysis'))}>
-                            <Beaker className="mr-2 h-4 w-4" />
+                            <Flask className="mr-2 h-4 w-4" />
                             <span>New Analysis</span>
                         </CommandItem>
                     </CommandGroup>
@@ -135,7 +135,7 @@ export function CommandMenu() {
                             <span>Clients</span>
                         </CommandItem>
                         <CommandItem onSelect={() => runCommand(() => router.push('/settings'))}>
-                            <Settings className="mr-2 h-4 w-4" />
+                            <Gear className="mr-2 h-4 w-4" />
                             <span>Settings</span>
                             <CommandShortcut><ModifierKey />S</CommandShortcut>
                         </CommandItem>

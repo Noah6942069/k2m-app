@@ -15,12 +15,11 @@ cryptography==46.0.3
 et_xmlfile==2.0.0
 gitdb==4.0.12
 GitPython==3.1.46
-google-ai-generativelanguage==0.6.15
 google-api-core==2.29.0
 google-api-python-client==2.188.0
 google-auth==2.48.0rc0
 google-auth-httplib2==0.3.0
-google-generativeai==0.8.6
+google-cloud-aiplatform>=1.38.0
 googleapis-common-protos==1.72.0
 greenlet==3.3.0
 grpcio==1.76.0
@@ -72,3 +71,4 @@ watchdog==6.0.0
 gcsfs
 google-cloud-storage
 google-cloud-bigquery
+firebase-admin==6.6.0

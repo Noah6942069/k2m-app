@@ -1,7 +1,7 @@
-"use client"
+    "use client"
 
 import { useState } from "react"
-import { User, Palette, Bell, Shield, Check, Moon, Sun, Globe } from "lucide-react"
+import { User, Palette, Bell, Shield, Check, Moon, Sun, Globe } from "@phosphor-icons/react"
 import { useTranslation } from "@/lib/i18n/language-context"
 import { useAuth } from "@/lib/auth-context"
 import { useTheme } from "next-themes"
@@ -72,7 +72,7 @@ export default function SettingsPage() {
                 >
                     {saved ? (
                         <>
-                            <Check className="w-4 h-4 mr-2" />
+                            <Check className="w-4 h-4 mr-2" weight="duotone" />
                             {t.settings.changesSaved}
                         </>
                     ) : (
@@ -84,8 +84,8 @@ export default function SettingsPage() {
             {/* Profile Section */}
             <div className="rounded-2xl bg-card border border-border/50 p-6">
                 <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
-                        <User className="w-5 h-5 text-blue-500" />
+                    <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shadow-sm shadow-blue-500/5">
+                        <User className="w-5 h-5 text-blue-500" weight="duotone" />
                     </div>
                     <div>
                         <h2 className="text-base font-semibold text-foreground">{t.settings.profile}</h2>
@@ -124,8 +124,8 @@ export default function SettingsPage() {
             {/* Appearance Section */}
             <div className="rounded-2xl bg-card border border-border/50 p-6">
                 <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
-                        <Palette className="w-5 h-5 text-violet-500" />
+                    <div className="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center shadow-sm shadow-violet-500/5">
+                        <Palette className="w-5 h-5 text-violet-500" weight="duotone" />
                     </div>
                     <div>
                         <h2 className="text-base font-semibold text-foreground">{t.settings.appearance}</h2>
@@ -138,9 +138,9 @@ export default function SettingsPage() {
                     <div className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border border-border/40">
                         <div className="flex items-center gap-3">
                             {theme === 'dark' ? (
-                                <Moon className="w-5 h-5 text-violet-500" />
+                                <Moon className="w-5 h-5 text-violet-500" weight="duotone" />
                             ) : (
-                                <Sun className="w-5 h-5 text-amber-500" />
+                                <Sun className="w-5 h-5 text-amber-500" weight="duotone" />
                             )}
                             <div>
                                 <p className="text-sm font-medium text-foreground">{t.settings.theme}</p>
@@ -172,7 +172,7 @@ export default function SettingsPage() {
                     {/* Language Toggle */}
                     <div className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border border-border/40">
                         <div className="flex items-center gap-3">
-                            <Globe className="w-5 h-5 text-blue-500" />
+                            <Globe className="w-5 h-5 text-blue-500" weight="duotone" />
                             <div>
                                 <p className="text-sm font-medium text-foreground">{t.settings.language}</p>
                                 <p className="text-xs text-muted-foreground">{t.settings.languageDesc}</p>
@@ -205,8 +205,8 @@ export default function SettingsPage() {
             {/* Notifications Section */}
             <div className="rounded-2xl bg-card border border-border/50 p-6">
                 <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
-                        <Bell className="w-5 h-5 text-amber-500" />
+                    <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shadow-sm shadow-amber-500/5">
+                        <Bell className="w-5 h-5 text-amber-500" weight="duotone" />
                     </div>
                     <div>
                         <h2 className="text-base font-semibold text-foreground">{t.settings.notifications}</h2>
@@ -253,8 +253,8 @@ export default function SettingsPage() {
             {/* Data & Privacy Section */}
             <div className="rounded-2xl bg-card border border-border/50 p-6">
                 <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-                        <Shield className="w-5 h-5 text-emerald-500" />
+                    <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shadow-sm shadow-emerald-500/5">
+                        <Shield className="w-5 h-5 text-emerald-500" weight="duotone" />
                     </div>
                     <div>
                         <h2 className="text-base font-semibold text-foreground">{t.settings.dataPrivacy}</h2>
@@ -285,6 +285,7 @@ export default function SettingsPage() {
                     </div>
                 </div>
             </div>
+
         </div>
     )
 }

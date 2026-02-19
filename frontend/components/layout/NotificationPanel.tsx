@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Bell, Check, CheckCheck, Trash2, Upload, Sparkles, AlertCircle, Info } from "lucide-react"
+import { Bell, Check, Checks, Trash, Upload, Sparkle, WarningCircle, Info } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
 import {
     DropdownMenu,
@@ -46,13 +46,13 @@ const typeConfig = {
         borderColor: "border-primary/20"
     },
     warning: {
-        icon: AlertCircle,
+        icon: WarningCircle,
         bgColor: "bg-amber-500/10",
         iconColor: "text-amber-400",
         borderColor: "border-amber-500/20"
     },
     insight: {
-        icon: Sparkles,
+        icon: Sparkle,
         bgColor: "bg-primary/10",
         iconColor: "text-primary",
         borderColor: "border-primary/20"
@@ -135,7 +135,7 @@ export function NotificationPanel({
                     size="icon"
                     className="relative text-muted-foreground hover:text-foreground hover:bg-muted"
                 >
-                    <Bell className="h-5 w-5" />
+                    <Bell className="h-5 w-5" weight="duotone" />
                     {unreadCount > 0 && (
                         <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-primary text-[10px] font-bold text-primary-foreground flex items-center justify-center badge-pulse">
                             {unreadCount > 9 ? "9+" : unreadCount}
@@ -160,7 +160,7 @@ export function NotificationPanel({
                             onClick={handleMarkAllRead}
                             className="h-7 text-xs text-muted-foreground hover:text-foreground"
                         >
-                            <CheckCheck className="w-3 h-3 mr-1" />
+                            <Checks className="w-3 h-3 mr-1" weight="duotone" />
                             Mark all read
                         </Button>
                     )}
@@ -170,7 +170,7 @@ export function NotificationPanel({
                 <ScrollArea className="max-h-[320px]">
                     {localNotifications.length === 0 ? (
                         <div className="py-12 text-center">
-                            <Bell className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+                            <Bell className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" weight="duotone" />
                             <p className="text-muted-foreground text-sm">No notifications</p>
                         </div>
                     ) : (
@@ -195,7 +195,7 @@ export function NotificationPanel({
                                             "flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center",
                                             config.bgColor
                                         )}>
-                                            <Icon className={cn("w-4 h-4", config.iconColor)} />
+                                            <Icon className={cn("w-4 h-4", config.iconColor)} weight="duotone" />
                                         </div>
 
                                         {/* Content */}
@@ -224,7 +224,7 @@ export function NotificationPanel({
                                                 handleClear(notification.id)
                                             }}
                                         >
-                                            <Trash2 className="w-3 h-3" />
+                                            <Trash className="w-3 h-3" weight="duotone" />
                                         </Button>
 
                                         {/* Unread indicator */}

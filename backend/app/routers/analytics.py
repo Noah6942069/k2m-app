@@ -13,8 +13,13 @@ from ..deps import get_current_user
 router = APIRouter(
     prefix="/analytics",
     tags=["analytics"],
-    dependencies=[Depends(get_current_user)]
 )
+
+
+def _check_dataset_access(dataset: Dataset, current_user: dict):
+    """Raises 403 if a non-admin user tries to access another company's dataset."""
+    if current_user.get("role") != "admin" and dataset.company_id != current_user["company_id"]:
+        raise HTTPException(status_code=403, detail="Access denied")
 
 def get_column_type(series: pd.Series) -> str:
     if pd.api.types.is_numeric_dtype(series):
@@ -251,10 +256,11 @@ async def perform_smart_analysis(df: pd.DataFrame, filename: str = "") -> dict:
     return result
 
 @router.get("/{dataset_id}/stats", response_model=DashboardStats)
-async def get_dataset_stats(dataset_id: int, session: Session = Depends(get_session)):
+async def get_dataset_stats(dataset_id: int, session: Session = Depends(get_session), current_user: dict = Depends(get_current_user)):
     dataset = session.get(Dataset, dataset_id)
     if not dataset:
         raise HTTPException(status_code=404, detail="Dataset not found")
+    _check_dataset_access(dataset, current_user)
         
     if not os.path.exists(dataset.file_path):
          raise HTTPException(status_code=404, detail="File missing from disk")
@@ -327,10 +333,11 @@ async def get_dataset_stats(dataset_id: int, session: Session = Depends(get_sess
         raise HTTPException(status_code=500, detail=f"Error analyzing file: {str(e)}")
 
 @router.post("/{dataset_id}/chat")
-async def chat_with_dataset(dataset_id: int, request: dict, session: Session = Depends(get_session)):
+async def chat_with_dataset(dataset_id: int, request: dict, session: Session = Depends(get_session), current_user: dict = Depends(get_current_user)):
     dataset = session.get(Dataset, dataset_id)
     if not dataset:
         raise HTTPException(status_code=404, detail="Dataset not found")
+    _check_dataset_access(dataset, current_user)
         
     user_message = request.get("message")
     if not user_message:
@@ -348,7 +355,7 @@ async def chat_with_dataset(dataset_id: int, request: dict, session: Session = D
         raise HTTPException(status_code=500, detail=f"Chat failed: {str(e)}")
 
 @router.get("/{dataset_id}/filters")
-def get_suggested_filters(dataset_id: int, session: Session = Depends(get_session)):
+def get_suggested_filters(dataset_id: int, session: Session = Depends(get_session), current_user: dict = Depends(get_current_user)):
     """
     Analyze the dataset and suggest good columns to use as filters.
     Returns columns with low cardinality (categorical) that would be useful for filtering.
@@ -356,6 +363,7 @@ def get_suggested_filters(dataset_id: int, session: Session = Depends(get_sessio
     dataset = session.get(Dataset, dataset_id)
     if not dataset:
         raise HTTPException(status_code=404, detail="Dataset not found")
+    _check_dataset_access(dataset, current_user)
         
     try:
         if dataset.filename.endswith('.csv'):
@@ -413,7 +421,7 @@ def get_suggested_filters(dataset_id: int, session: Session = Depends(get_sessio
         raise HTTPException(status_code=500, detail=f"Error analyzing filters: {str(e)}")
 
 @router.post("/{dataset_id}/stats/filtered")
-async def get_filtered_stats(dataset_id: int, request: dict, session: Session = Depends(get_session)):
+async def get_filtered_stats(dataset_id: int, request: dict, session: Session = Depends(get_session), current_user: dict = Depends(get_current_user)):
     """
     Get stats for a dataset with filters applied.
     Request body: {"filters": {"Column1": "Value1", "Column2": "Value2"}}
@@ -421,6 +429,7 @@ async def get_filtered_stats(dataset_id: int, request: dict, session: Session = 
     dataset = session.get(Dataset, dataset_id)
     if not dataset:
         raise HTTPException(status_code=404, detail="Dataset not found")
+    _check_dataset_access(dataset, current_user)
     
     filters = request.get("filters", {})
     
@@ -455,7 +464,7 @@ async def get_filtered_stats(dataset_id: int, request: dict, session: Session = 
         raise HTTPException(status_code=500, detail=f"Error with filtered stats: {str(e)}")
 
 @router.get("/{dataset_id}/anomalies")
-def detect_anomalies(dataset_id: int, session: Session = Depends(get_session)):
+def detect_anomalies(dataset_id: int, session: Session = Depends(get_session), current_user: dict = Depends(get_current_user)):
     """
     Detect statistical anomalies in the dataset using z-score and IQR methods.
     Returns a list of detected anomalies with severity.
@@ -463,6 +472,7 @@ def detect_anomalies(dataset_id: int, session: Session = Depends(get_session)):
     dataset = session.get(Dataset, dataset_id)
     if not dataset:
         raise HTTPException(status_code=404, detail="Dataset not found")
+    _check_dataset_access(dataset, current_user)
     
     try:
         if dataset.filename.endswith('.csv'):
@@ -557,7 +567,7 @@ def detect_anomalies(dataset_id: int, session: Session = Depends(get_session)):
 
 
 @router.get("/{dataset_id}/advanced-stats", response_model=AdvancedStats)
-def get_advanced_stats(dataset_id: int, session: Session = Depends(get_session)):
+def get_advanced_stats(dataset_id: int, session: Session = Depends(get_session), current_user: dict = Depends(get_current_user)):
     """
     Returns extended analytics for the enhanced dashboard:
     - growth_rate: % change from previous period
@@ -572,6 +582,7 @@ def get_advanced_stats(dataset_id: int, session: Session = Depends(get_session))
     dataset = session.get(Dataset, dataset_id)
     if not dataset:
         raise HTTPException(status_code=404, detail="Dataset not found")
+    _check_dataset_access(dataset, current_user)
     
     if not os.path.exists(dataset.file_path):
         raise HTTPException(status_code=404, detail="Dataset file not found")

@@ -8,7 +8,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Check, Palette } from "lucide-react"
+import { Check, Palette } from "@phosphor-icons/react"
 import { cn } from "@/lib/utils"
 
 const themes = [

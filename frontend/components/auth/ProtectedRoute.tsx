@@ -3,7 +3,7 @@
 import { useAuth } from "@/lib/auth-context"
 import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
-import { Sparkles } from "lucide-react"
+import { Sparkle } from "@phosphor-icons/react"
 
 interface ProtectedRouteProps {
     children: React.ReactNode
@@ -40,6 +40,10 @@ export function ProtectedRoute({ children, adminOnly = false }: ProtectedRoutePr
             if (!user) {
                 hasRedirected.current = true
                 router.push("/login")
+            } else if (!user.has2FA) {
+                // User logged in but hasn't enrolled 2FA - send back to login for enrollment
+                hasRedirected.current = true
+                router.push("/login")
             } else if (adminOnly && !isAdmin) {
                 hasRedirected.current = true
                 router.push("/dashboard")
@@ -53,7 +57,7 @@ export function ProtectedRoute({ children, adminOnly = false }: ProtectedRoutePr
             <div className="min-h-screen bg-[#0d0d12] flex items-center justify-center">
                 <div className="flex flex-col items-center gap-4">
                     <div className="w-12 h-12 rounded-2xl bg-[#7c5cfc]/10 flex items-center justify-center animate-pulse">
-                        <Sparkles className="w-6 h-6 text-[#7c5cfc]" />
+                        <Sparkle className="w-6 h-6 text-[#7c5cfc]" weight="duotone" />
                     </div>
                     <p className="text-zinc-500 font-medium">Loading...</p>
                 </div>
@@ -61,8 +65,8 @@ export function ProtectedRoute({ children, adminOnly = false }: ProtectedRoutePr
         )
     }
 
-    // Not authenticated or timed out
-    if (!user || timedOut) {
+    // Not authenticated, timed out, or no 2FA
+    if (!user || timedOut || !user.has2FA) {
         return null
     }
 
