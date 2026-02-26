@@ -4,66 +4,80 @@ import { useTranslation } from "@/lib/i18n/language-context"
 import { useAuth } from "@/lib/auth-context"
 import { CommandPalette } from "@/components/CommandPalette"
 import Link from "next/link"
-import { Suspense, useState, useEffect } from "react"
+import { Fragment, Suspense, useState, useEffect } from "react"
 import { DashboardSkeleton } from "@/components/skeletons"
 import CountUp from "@/components/ui/CountUp"
 import {
-    TrendUp, TrendDown, ChartLineUp, Users, Wallet, CurrencyDollar,
-    ArrowUpRight, ArrowDownRight, ArrowRight, Drop
+    TrendDown, ArrowUpRight, ArrowDownRight, ArrowRight, Drop
 } from "@phosphor-icons/react"
 
-// ── Palette ──
-// Purple #7C5CFC | Blue #5b8def | Teal #2dd4bf | Rose #f472b6
-const UP_COLOR = "#2dd4bf"       // teal - positive
-const UP_BG = "rgba(45,212,191,0.08)"
-const DOWN_COLOR = "#f472b6"     // rose - negative (fits purple theme)
-const DOWN_BG = "rgba(244,114,182,0.08)"
+// ── Palette (3 main colors) ──
+// Purple #7C5CFC | Blue #5b8def | Teal #2dd4bf
+const UP_COLOR = "#2dd4bf"
+const DOWN_COLOR = "#f472b6"
+
+// ── Score Status (4 tiers) ──
+function getScoreStatus(score: number) {
+    if (score >= 80) return {
+        labelCs: "Optimální", labelEn: "Optimal",
+        color: "rgba(45,212,191,0.9)", bg: "rgba(45,212,191,0.06)",
+        border: "rgba(45,212,191,0.12)", dotColor: "#2dd4bf",
+    }
+    if (score >= 60) return {
+        labelCs: "Stabilní", labelEn: "Stable",
+        color: "rgba(91,141,239,0.9)", bg: "rgba(91,141,239,0.06)",
+        border: "rgba(91,141,239,0.12)", dotColor: "#5b8def",
+    }
+    if (score >= 40) return {
+        labelCs: "Nestabilní", labelEn: "Unstable",
+        color: "rgba(245,158,11,0.9)", bg: "rgba(245,158,11,0.06)",
+        border: "rgba(245,158,11,0.12)", dotColor: "#f59e0b",
+    }
+    return {
+        labelCs: "Rizikový", labelEn: "Risky",
+        color: "rgba(244,114,182,0.9)", bg: "rgba(244,114,182,0.06)",
+        border: "rgba(244,114,182,0.12)", dotColor: "#f472b6",
+    }
+}
+
+// ── Index Score Color ──
+function getIndexColor(score: number): string {
+    if (score >= 70) return "#7C5CFC"
+    if (score >= 40) return "#5b8def"
+    return "#2dd4bf"
+}
 
 // ── Health Score ──
 const HEALTH_SCORE = 82
 const RADIUS = 88
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS
-const TIP_ANGLE = (HEALTH_SCORE / 100) * 2 * Math.PI
-const TIP_X = 100 + RADIUS * Math.cos(TIP_ANGLE)
-const TIP_Y = 100 + RADIUS * Math.sin(TIP_ANGLE)
 
-// ── KPI Data ──
+// ── Key Metrics (Left Panel) ──
+const keyMetricsData = [
+    { shortCs: "Runway", shortEn: "Runway", value: 6.2, suffix: " mo", trend: -8.0, direction: "down" as const },
+    { shortCs: "Burn Rate", shortEn: "Burn Rate", value: 1.2, suffix: "M Kč", trend: 8.0, direction: "down" as const },
+    { shortCs: "Hotovost. rezerva", shortEn: "Cash Reserve", value: 1.8, suffix: " mo", trend: -12.0, direction: "down" as const },
+    { shortCs: "Růst tržeb", shortEn: "Revenue Growth", value: 12.5, suffix: "%", trend: 3.2, direction: "up" as const },
+    { shortCs: "Zisková marže", shortEn: "Profit Margin", value: 23.8, suffix: "%", trend: 1.5, direction: "up" as const },
+    { shortCs: "Retence", shortEn: "Retention", value: 94.2, suffix: "%", trend: 0.8, direction: "up" as const },
+]
+
+// ── KPI Data (below panels) ──
 const kpiData = [
-    {
-        titleCs: "Růst tržeb",
-        titleEn: "Revenue Growth",
-        value: 12.5,
-        suffix: "%",
-        changeDirection: "up" as const,
-    },
-    {
-        titleCs: "Zisková marže",
-        titleEn: "Profit Margin",
-        value: 23.8,
-        suffix: "%",
-        changeDirection: "up" as const,
-    },
-    {
-        titleCs: "Retence zákazníků",
-        titleEn: "Customer Retention",
-        value: 94.2,
-        suffix: "%",
-        changeDirection: "up" as const,
-    },
-    {
-        titleCs: "Nákladová efektivita",
-        titleEn: "Cost Efficiency",
-        value: 87,
-        suffix: "%",
-        changeDirection: "down" as const,
-    },
-    {
-        titleCs: "Cash Flow",
-        titleEn: "Cash Flow",
-        value: 2.4,
-        suffix: "M Kč",
-        changeDirection: "up" as const,
-    },
+    { titleCs: "Tržby", titleEn: "Revenue", value: 24.8, suffix: "M Kč", direction: "up" as const, color: "#7C5CFC" },
+    { titleCs: "EBITDA", titleEn: "EBITDA", value: 5.9, suffix: "M Kč", direction: "up" as const, color: "#5b8def" },
+    { titleCs: "Provozní Cash Flow", titleEn: "Op. Cash Flow", value: 3.2, suffix: "M Kč", direction: "up" as const, color: "#2dd4bf" },
+    { titleCs: "Working Capital", titleEn: "Working Capital", value: 8.4, suffix: "M Kč", direction: "up" as const, color: "#7C5CFC" },
+]
+
+// ── Index Score Data ──
+const indexScoreData = [
+    { titleCs: "Index finanční stability", titleEn: "Financial Health Index", shortCs: "Fin. stabilita", shortEn: "Financial Health", score: 78, trend: 4.1, direction: "up" as const },
+    { titleCs: "Rizikový index", titleEn: "Risk Index", shortCs: "Rizikový index", shortEn: "Risk Index", score: 45, trend: -2.8, direction: "down" as const },
+    { titleCs: "Index likvidity", titleEn: "Liquidity Index", shortCs: "Likvidita", shortEn: "Liquidity", score: 68, trend: 1.5, direction: "up" as const },
+    { titleCs: "Index kvality růstu", titleEn: "Growth Quality Index", shortCs: "Kvalita růstu", shortEn: "Growth Quality", score: 71, trend: 5.6, direction: "up" as const },
+    { titleCs: "Index provozní efektivity", titleEn: "Operational Efficiency Index", shortCs: "Provoz. efektivita", shortEn: "Op. Efficiency", score: 84, trend: 2.3, direction: "up" as const },
+    { titleCs: "Index stability zákazníků", titleEn: "Customer Stability Index", shortCs: "Stab. zákazníků", shortEn: "Customer Stability", score: 62, trend: -1.2, direction: "down" as const },
 ]
 
 // ── Alert Cards ──
@@ -71,30 +85,28 @@ const alertCards = [
     {
         titleCs: "Likvidita pod minimem",
         titleEn: "Liquidity Below Minimum",
-        descriptionCs: "Aktuální hotovostní rezerva pokrývá pouze 1.8 měsíce provozu. Doporučujeme přehodnotit krátkodobé výdaje a zvážit optimalizaci provozního kapitálu.",
-        descriptionEn: "Current cash reserve covers only 1.8 months of operations. We recommend reassessing short-term expenses and considering working capital optimization.",
-        icon: Drop,
-        accent: "blue" as const,
+        descriptionCs: "Aktuální hotovostní rezerva pokrývá pouze 1.8 měsíce provozu. Doporučujeme přehodnotit krátkodobé výdaje.",
+        descriptionEn: "Current cash reserve covers only 1.8 months of operations. We recommend reassessing short-term expenses.",
         metricValue: 1.8,
         metricLabelCs: "měsíců runway",
         metricLabelEn: "months runway",
         linkHref: "/rizika",
         linkLabelCs: "Zobrazit analýzu",
         linkLabelEn: "View analysis",
+        color: "#5b8def",
     },
     {
         titleCs: "Runway a Burn Rate",
         titleEn: "Runway & Burn Rate",
-        descriptionCs: "Měsíční burn rate vzrostl o 8% oproti předchozímu kvartálu. Při aktuálním tempu spalování máte runway přibližně 6.2 měsíce bez dalšího financování.",
-        descriptionEn: "Monthly burn rate increased by 8% compared to the previous quarter. At the current burn rate, your runway is approximately 6.2 months without additional funding.",
-        icon: TrendDown,
-        accent: "rose" as const,
+        descriptionCs: "Měsíční burn rate vzrostl o 8% oproti předchozímu kvartálu. Runway přibližně 6.2 měsíce bez dalšího financování.",
+        descriptionEn: "Monthly burn rate increased by 8% compared to the previous quarter. Runway is approximately 6.2 months without additional funding.",
         metricValue: 6.2,
         metricLabelCs: "měsíců do vyčerpání",
         metricLabelEn: "months until depletion",
         linkHref: "/rizika",
         linkLabelCs: "Zobrazit detail",
         linkLabelEn: "View details",
+        color: "#7C5CFC",
     },
 ]
 
@@ -109,378 +121,274 @@ const barIndicators = [
     { labelCs: "Konverze", labelEn: "Conversion", direction: "up" as const },
 ]
 
-// ── Alert card color map ──
-const alertAccents = {
-    blue: {
-        border: "rgba(91,141,239,0.4)",
-        iconBg: "rgba(91,141,239,0.1)",
-        iconBorder: "rgba(91,141,239,0.2)",
-        iconText: "#5b8def",
-        metric: "#5b8def",
-    },
-    rose: {
-        border: "rgba(244,114,182,0.4)",
-        iconBg: "rgba(244,114,182,0.1)",
-        iconBorder: "rgba(244,114,182,0.2)",
-        iconText: "#f472b6",
-        metric: "#f472b6",
-    },
-}
-
 function DashboardContent() {
     const { language } = useTranslation()
     const { user } = useAuth()
     const [circleOffset, setCircleOffset] = useState(CIRCUMFERENCE)
-    const [showTip, setShowTip] = useState(false)
 
     useEffect(() => {
         const timer = setTimeout(() => {
             setCircleOffset(CIRCUMFERENCE * (1 - HEALTH_SCORE / 100))
         }, 200)
-        const tipTimer = setTimeout(() => setShowTip(true), 2800)
-        return () => { clearTimeout(timer); clearTimeout(tipTimer) }
+        return () => clearTimeout(timer)
     }, [])
+
+    const status = getScoreStatus(HEALTH_SCORE)
 
     return (
         <>
             <CommandPalette />
 
             <div className="flex-1 relative overflow-hidden">
-                <div className="relative max-w-[1600px] mx-auto px-6 md:px-10 w-full flex flex-col gap-8 md:gap-10 py-4 md:py-6 min-h-[calc(100vh-140px)]">
+                <div className="relative max-w-[1600px] mx-auto px-4 md:px-10 w-full flex flex-col gap-10 md:gap-16 py-8 md:py-14">
 
-                    {/* ═══════════════════════════════════════════ */}
-                    {/* SECTION 1: Health Score Circle              */}
-                    {/* ═══════════════════════════════════════════ */}
-                    <section className="flex flex-col items-center pt-2">
-                        {/* Pulse glow keyframes */}
-                        <style dangerouslySetInnerHTML={{ __html: `
-                            @keyframes scoreGlowPulse {
-                                0%, 100% { opacity: 0.18; transform: scale(1); }
-                                50% { opacity: 0.32; transform: scale(1.06); }
-                            }
-                            @keyframes tipFadeIn {
-                                from { opacity: 0; }
-                                to { opacity: 1; }
-                            }
-                        `}} />
+                    {/* ── Health Score + Side Panels ── */}
+                    <section className="pt-10 md:pt-20 pb-4 md:pb-56 lg:pb-52">
+                        <div className="flex flex-col items-center gap-8 md:gap-0 md:relative">
 
-                        {/* Small label above */}
-                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[13px] font-medium mb-5 tracking-wide uppercase"
-                            style={{
-                                background: "rgba(124,92,252,0.06)",
-                                border: "1px solid rgba(124,92,252,0.12)",
-                                color: "#9F84FD",
-                            }}>
-                            {language === 'cs' ? 'Přehled společnosti' : 'Company Overview'}
-                        </div>
-
-                        {/* Circle container */}
-                        <div className="relative w-48 h-48 md:w-60 md:h-60">
-                            {/* Layer 1: Slow pulsing outer glow — purple/blue/green blend */}
+                            {/* Key Metrics Panel (Left) */}
                             <div
-                                className="absolute inset-[-55px] rounded-full"
+                                className="rounded-3xl bg-white/[0.03] backdrop-blur-sm px-6 md:px-8 py-4 md:py-5 w-full max-w-[400px] md:absolute md:left-0 md:top-1/2 md:-translate-y-1/2 md:w-[380px] lg:w-[420px] flex flex-col justify-center order-2 md:order-none"
                                 style={{
-                                    background: "conic-gradient(from 200deg, rgba(16,185,129,0.25), rgba(91,141,239,0.3) 35%, rgba(124,92,252,0.4) 65%, rgba(139,108,255,0.2) 100%)",
-                                    animation: "scoreGlowPulse 5s ease-in-out infinite",
-                                    filter: "blur(30px)",
+                                    borderTop: "1px solid rgba(255,255,255,0.12)",
+                                    borderLeft: "1px solid rgba(255,255,255,0.12)",
+                                    borderBottom: "1px solid rgba(255,255,255,0.12)",
+                                    borderRight: "4px solid #5b8def",
                                 }}
-                            />
-                            {/* Layer 2: Focused mid glow — purple dominant */}
-                            <div
-                                className="absolute inset-[-28px] rounded-full blur-[45px] opacity-30"
-                                style={{ background: "radial-gradient(circle, #7C5CFC 0%, #5b8def 40%, rgba(16,185,129,0.4) 65%, transparent 80%)" }}
-                            />
-                            {/* Layer 3: Tight inner glow */}
-                            <div
-                                className="absolute inset-[-10px] rounded-full blur-[22px] opacity-20"
-                                style={{ background: "radial-gradient(circle, #9F84FD 0%, transparent 55%)" }}
-                            />
-
-                            {/* SVG Ring */}
-                            <svg className="w-full h-full -rotate-90" viewBox="0 0 200 200">
-                                <defs>
-                                    {/* Arc gradient: green → blue → purple (matches app color hierarchy) */}
-                                    <linearGradient id="scoreGradient" x1="0%" y1="100%" x2="100%" y2="0%">
-                                        <stop offset="0%" stopColor="#10b981" />
-                                        <stop offset="18%" stopColor="#10b981" />
-                                        <stop offset="32%" stopColor="#3b9ee0" />
-                                        <stop offset="45%" stopColor="#5b8def" />
-                                        <stop offset="60%" stopColor="#5b8def" />
-                                        <stop offset="75%" stopColor="#6a6ff5" />
-                                        <stop offset="88%" stopColor="#7C5CFC" />
-                                        <stop offset="100%" stopColor="#8B6CFF" />
-                                    </linearGradient>
-                                    {/* Arc glow filter */}
-                                    <filter id="arcGlow" x="-20%" y="-20%" width="140%" height="140%">
-                                        <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
-                                        <feMerge>
-                                            <feMergeNode in="blur" />
-                                            <feMergeNode in="SourceGraphic" />
-                                        </feMerge>
-                                    </filter>
-                                    {/* Tip dot glow filter */}
-                                    <filter id="dotGlow" x="-100%" y="-100%" width="300%" height="300%">
-                                        <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur" />
-                                        <feMerge>
-                                            <feMergeNode in="blur" />
-                                            <feMergeNode in="blur" />
-                                            <feMergeNode in="SourceGraphic" />
-                                        </feMerge>
-                                    </filter>
-                                    {/* Inner glass gradient */}
-                                    <radialGradient id="innerGlass" cx="50%" cy="40%" r="50%">
-                                        <stop offset="0%" stopColor="rgba(124,92,252,0.04)" />
-                                        <stop offset="100%" stopColor="rgba(7,3,18,0.5)" />
-                                    </radialGradient>
-                                </defs>
-
-                                {/* Outer decorative ring */}
-                                <circle cx="100" cy="100" r="97" fill="none" stroke="rgba(124,92,252,0.06)" strokeWidth="0.5" />
-
-                                {/* Inner glass disc */}
-                                <circle cx="100" cy="100" r="78" fill="url(#innerGlass)" stroke="rgba(124,92,252,0.08)" strokeWidth="0.5" />
-
-                                {/* Track ring */}
-                                <circle
-                                    cx="100" cy="100" r={RADIUS}
-                                    fill="none"
-                                    stroke="rgba(124,92,252,0.1)"
-                                    strokeWidth="8"
-                                />
-
-                                {/* Wide soft glow behind progress */}
-                                <circle
-                                    cx="100" cy="100" r={RADIUS}
-                                    fill="none"
-                                    stroke="url(#scoreGradient)"
-                                    strokeWidth="20"
-                                    strokeLinecap="round"
-                                    strokeDasharray={CIRCUMFERENCE}
-                                    strokeDashoffset={circleOffset}
-                                    opacity="0.18"
-                                    style={{
-                                        transition: "stroke-dashoffset 2.5s cubic-bezier(0.4, 0, 0.2, 1)",
-                                        filter: "blur(12px)",
-                                    }}
-                                />
-
-                                {/* Main progress arc with glow filter */}
-                                <circle
-                                    cx="100" cy="100" r={RADIUS}
-                                    fill="none"
-                                    stroke="url(#scoreGradient)"
-                                    strokeWidth="9"
-                                    strokeLinecap="round"
-                                    strokeDasharray={CIRCUMFERENCE}
-                                    strokeDashoffset={circleOffset}
-                                    filter="url(#arcGlow)"
-                                    style={{
-                                        transition: "stroke-dashoffset 2.5s cubic-bezier(0.4, 0, 0.2, 1)",
-                                    }}
-                                />
-
-                                {/* Endpoint tip dot */}
-                                {showTip && (
-                                    <circle
-                                        cx={TIP_X}
-                                        cy={TIP_Y}
-                                        r="5"
-                                        fill="#c4b5fd"
-                                        filter="url(#dotGlow)"
-                                        style={{ animation: "tipFadeIn 0.6s ease-out" }}
-                                    />
-                                )}
-                            </svg>
-
-                            {/* Center content */}
-                            <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                <CountUp
-                                    from={0}
-                                    to={HEALTH_SCORE}
-                                    duration={2.5}
-                                    delay={0.2}
-                                    className="text-6xl md:text-7xl font-normal text-white tabular-nums tracking-tight"
-                                    // @ts-ignore
-                                    style={{ textShadow: "0 0 40px rgba(124,92,252,0.45), 0 0 80px rgba(124,92,252,0.15)" }}
-                                />
-                                <p className="text-xs md:text-sm mt-2 font-medium tracking-[0.2em] uppercase"
-                                    style={{ color: "rgba(180,160,255,0.85)" }}>
-                                    {language === 'cs' ? 'Zdraví firmy' : 'Company Health'}
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Score status badge */}
-                        <div className="mt-5 text-center">
-                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full"
-                                style={{ background: "rgba(45,212,191,0.06)", border: "1px solid rgba(45,212,191,0.12)" }}>
-                                <div className="w-1.5 h-1.5 rounded-full" style={{ background: HEALTH_SCORE >= 70 ? UP_COLOR : HEALTH_SCORE >= 40 ? "#f59e0b" : DOWN_COLOR }} />
-                                <p className="text-[13px] font-medium" style={{ color: HEALTH_SCORE >= 70 ? "rgba(45,212,191,0.9)" : HEALTH_SCORE >= 40 ? "rgba(245,158,11,0.9)" : "rgba(244,114,182,0.9)" }}>
-                                    {HEALTH_SCORE >= 70
-                                        ? (language === 'cs' ? 'Firma je v dobré kondici' : 'Company is in good shape')
-                                        : HEALTH_SCORE >= 40
-                                            ? (language === 'cs' ? 'Vyžaduje pozornost' : 'Needs attention')
-                                            : (language === 'cs' ? 'Kritický stav' : 'Critical state')
-                                    }
-                                </p>
-                            </div>
-                        </div>
-                    </section>
-
-                    {/* ═══════════════════════════════════════════ */}
-                    {/* SECTION 2: Mini KPI Cards                   */}
-                    {/* ═══════════════════════════════════════════ */}
-                    <section>
-                        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-4">
-                            {kpiData.map((kpi, idx) => {
-                                const isUp = kpi.changeDirection === "up"
-                                return (
-                                    <div
-                                        key={idx}
-                                        className="group relative rounded-2xl backdrop-blur-sm p-5 md:p-6 transition-all duration-300 hover:scale-[1.02]"
-                                        style={{
-                                            border: "1px solid rgba(124,92,252,0.15)",
-                                            background: "rgba(124,92,252,0.06)",
-                                        }}
-                                    >
-                                        {/* Title - small, subtle */}
-                                        <p className="text-[11px] md:text-xs font-normal uppercase tracking-widest mb-4"
-                                            style={{ color: "rgba(180,160,255,0.9)" }}>
-                                            {language === 'cs' ? kpi.titleCs : kpi.titleEn}
-                                        </p>
-
-                                        {/* Main row: big number + big arrow icon */}
-                                        <div className="flex items-center justify-between">
-                                            {/* Number */}
-                                            <div className="flex items-baseline gap-1.5">
-                                                <CountUp
-                                                    from={0}
-                                                    to={kpi.value}
-                                                    duration={2}
-                                                    delay={0.1 * idx}
-                                                    className="text-[34px] md:text-[42px] font-semibold text-white tabular-nums leading-none"
-                                                />
-                                                <span className="text-xs md:text-sm font-normal" style={{ color: "rgba(180,160,255,0.85)" }}>
-                                                    {kpi.suffix}
-                                                </span>
-                                            </div>
-
-                                            {/* Arrow icon - prominent */}
-                                            <div className="w-10 h-10 md:w-11 md:h-11 rounded-xl flex items-center justify-center"
-                                                style={{ background: isUp ? UP_BG : DOWN_BG }}>
-                                                {isUp
-                                                    ? <ArrowUpRight className="w-5 h-5 md:w-6 md:h-6" style={{ color: UP_COLOR }} weight="bold" />
-                                                    : <ArrowDownRight className="w-5 h-5 md:w-6 md:h-6" style={{ color: DOWN_COLOR }} weight="bold" />
-                                                }
-                                            </div>
-                                        </div>
-                                    </div>
-                                )
-                            })}
-                        </div>
-                    </section>
-
-                    {/* ═══════════════════════════════════════════ */}
-                    {/* SECTION 3: Alert / Insight Cards            */}
-                    {/* ═══════════════════════════════════════════ */}
-                    <section>
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-                            {alertCards.map((card, idx) => {
-                                const Icon = card.icon
-                                const a = alertAccents[card.accent]
-
-                                return (
-                                    <div
-                                        key={idx}
-                                        className="group relative rounded-2xl backdrop-blur-sm p-6 md:p-8 transition-all duration-300 hover:scale-[1.01]"
-                                        style={{
-                                            border: "1px solid rgba(124,92,252,0.15)",
-                                            borderLeft: `3px solid ${a.border}`,
-                                            background: "rgba(124,92,252,0.06)",
-                                        }}
-                                    >
-                                        {/* Header */}
-                                        <div className="flex items-start gap-4 mb-5">
-                                            <div className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
-                                                style={{
-                                                    background: a.iconBg,
-                                                    border: `1px solid ${a.iconBorder}`,
-                                                }}>
-                                                <Icon className="w-5 h-5" style={{ color: a.iconText }} weight="duotone" />
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <h3 className="text-lg font-semibold text-white mb-1.5">
-                                                    {language === 'cs' ? card.titleCs : card.titleEn}
-                                                </h3>
-                                                <p className="text-sm leading-relaxed" style={{ color: "rgba(210,200,235,0.9)" }}>
-                                                    {language === 'cs' ? card.descriptionCs : card.descriptionEn}
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        {/* Bottom metric + link */}
-                                        <div className="flex items-center justify-between pt-5" style={{ borderTop: "1px solid rgba(124,92,252,0.18)" }}>
-                                            <div className="flex items-baseline gap-2">
-                                                <CountUp
-                                                    from={0}
-                                                    to={card.metricValue}
-                                                    duration={2}
-                                                    delay={0.5}
-                                                    className="text-2xl md:text-3xl font-semibold tabular-nums"
-                                                    // @ts-ignore
-                                                    style={{ color: a.metric }}
-                                                />
-                                                <span className="text-xs" style={{ color: "rgba(210,200,235,0.85)" }}>
-                                                    {language === 'cs' ? card.metricLabelCs : card.metricLabelEn}
-                                                </span>
-                                            </div>
-                                            <Link
-                                                href={card.linkHref}
-                                                className="flex items-center gap-1.5 text-[13px] font-medium transition-colors"
-                                                style={{ color: "rgba(180,160,255,0.9)" }}
-                                                onMouseEnter={(e) => e.currentTarget.style.color = "#B8A4FE"}
-                                                onMouseLeave={(e) => e.currentTarget.style.color = "rgba(180,160,255,0.9)"}
+                            >
+                                {keyMetricsData.map((item, idx) => (
+                                    <Fragment key={idx}>
+                                        <div className="flex items-center justify-between py-2.5 md:py-3">
+                                            <span
+                                                className="text-[13px] md:text-sm font-medium"
+                                                style={{ color: "rgba(220,210,255,0.95)" }}
                                             >
-                                                {language === 'cs' ? card.linkLabelCs : card.linkLabelEn}
-                                                <ArrowRight className="w-3.5 h-3.5" weight="bold" />
-                                            </Link>
+                                                {language === "cs" ? item.shortCs : item.shortEn}
+                                            </span>
+
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex items-baseline gap-0.5">
+                                                    <CountUp
+                                                        from={0} to={item.value} duration={2} delay={0.1 * idx}
+                                                        className="text-[16px] md:text-lg font-semibold text-white tabular-nums"
+                                                    />
+                                                    <span className="text-[11px] md:text-xs font-normal" style={{ color: "rgba(180,160,255,0.7)" }}>
+                                                        {item.suffix}
+                                                    </span>
+                                                </div>
+                                                <span
+                                                    className="flex items-center gap-0.5 text-[11px] md:text-xs font-semibold tabular-nums min-w-[58px] justify-end"
+                                                    style={{ color: item.direction === "up" ? UP_COLOR : DOWN_COLOR }}
+                                                >
+                                                    {item.direction === "up"
+                                                        ? <ArrowUpRight className="w-3.5 h-3.5" weight="bold" />
+                                                        : <ArrowDownRight className="w-3.5 h-3.5" weight="bold" />
+                                                    }
+                                                    {item.trend > 0 ? "+" : ""}{item.trend}%
+                                                </span>
+                                            </div>
                                         </div>
+                                        {idx < keyMetricsData.length - 1 && (
+                                            <div className="h-px w-full" style={{ background: "rgba(255,255,255,0.08)" }} />
+                                        )}
+                                    </Fragment>
+                                ))}
+                            </div>
+
+                            {/* Circle (centered) */}
+                            <div className="relative w-44 h-44 md:w-56 md:h-56 shrink-0 order-1 md:order-none">
+                                {/* Subtle glow */}
+                                <div
+                                    className="absolute rounded-full pointer-events-none"
+                                    style={{
+                                        inset: "-50px",
+                                        background: "radial-gradient(circle, rgba(124,92,252,0.25) 0%, rgba(91,141,239,0.12) 40%, transparent 70%)",
+                                        filter: "blur(30px)",
+                                    }}
+                                />
+
+                                <svg className="w-full h-full -rotate-90" viewBox="0 0 200 200">
+                                    <defs>
+                                        <linearGradient id="scoreGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+                                            <stop offset="0%" stopColor="#2dd4bf" />
+                                            <stop offset="50%" stopColor="#5b8def" />
+                                            <stop offset="100%" stopColor="#7C5CFC" />
+                                        </linearGradient>
+                                    </defs>
+
+                                    {/* Track */}
+                                    <circle cx="100" cy="100" r={RADIUS} fill="none"
+                                        stroke="rgba(124,92,252,0.08)" strokeWidth="7" />
+
+                                    {/* Progress */}
+                                    <circle cx="100" cy="100" r={RADIUS} fill="none"
+                                        stroke="url(#scoreGrad)" strokeWidth="7" strokeLinecap="round"
+                                        strokeDasharray={CIRCUMFERENCE} strokeDashoffset={circleOffset}
+                                        style={{ transition: "stroke-dashoffset 2.5s cubic-bezier(0.4, 0, 0.2, 1)" }}
+                                    />
+                                </svg>
+
+                                {/* Center content */}
+                                <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5">
+                                    <CountUp
+                                        from={0} to={HEALTH_SCORE} duration={2.5} delay={0.2}
+                                        className="text-5xl md:text-7xl font-light text-white tabular-nums tracking-tight"
+                                    />
+                                    <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full"
+                                        style={{ background: status.bg, border: `1px solid ${status.border}` }}>
+                                        <div className="w-1.5 h-1.5 rounded-full" style={{ background: status.dotColor }} />
+                                        <p className="text-[11px] font-medium" style={{ color: status.color }}>
+                                            {language === "cs" ? status.labelCs : status.labelEn}
+                                        </p>
                                     </div>
-                                )
-                            })}
+                                </div>
+                            </div>
+
+                            {/* Index Breakdown Panel (Right) */}
+                            <div
+                                className="rounded-3xl bg-white/[0.03] backdrop-blur-sm px-6 md:px-8 py-4 md:py-5 w-full max-w-[400px] md:absolute md:right-0 md:top-1/2 md:-translate-y-1/2 md:w-[380px] lg:w-[420px] flex flex-col justify-center order-3 md:order-none"
+                                style={{
+                                    borderTop: "1px solid rgba(255,255,255,0.12)",
+                                    borderRight: "1px solid rgba(255,255,255,0.12)",
+                                    borderBottom: "1px solid rgba(255,255,255,0.12)",
+                                    borderLeft: "4px solid #7C5CFC",
+                                }}
+                            >
+                                {indexScoreData.map((item, idx) => (
+                                    <Fragment key={idx}>
+                                        <div className="flex items-center justify-between py-2.5 md:py-3">
+                                            <span
+                                                className="text-[13px] md:text-sm font-medium"
+                                                style={{ color: "rgba(220,210,255,0.95)" }}
+                                            >
+                                                {language === "cs" ? item.shortCs : item.shortEn}
+                                            </span>
+
+                                            <div className="flex items-center gap-4">
+                                                <CountUp
+                                                    from={0} to={item.score} duration={2} delay={0.1 * idx}
+                                                    className="text-[16px] md:text-lg font-semibold text-white tabular-nums"
+                                                />
+                                                <span
+                                                    className="flex items-center gap-0.5 text-[11px] md:text-xs font-semibold tabular-nums min-w-[58px] justify-end"
+                                                    style={{ color: item.direction === "up" ? UP_COLOR : DOWN_COLOR }}
+                                                >
+                                                    {item.direction === "up"
+                                                        ? <ArrowUpRight className="w-3.5 h-3.5" weight="bold" />
+                                                        : <ArrowDownRight className="w-3.5 h-3.5" weight="bold" />
+                                                    }
+                                                    {item.trend > 0 ? "+" : ""}{item.trend}%
+                                                </span>
+                                            </div>
+                                        </div>
+                                        {idx < indexScoreData.length - 1 && (
+                                            <div className="h-px w-full" style={{ background: "rgba(255,255,255,0.08)" }} />
+                                        )}
+                                    </Fragment>
+                                ))}
+                            </div>
+
                         </div>
                     </section>
 
-                    {/* ═══════════════════════════════════════════ */}
-                    {/* SECTION 4: Touch Bar                        */}
-                    {/* ═══════════════════════════════════════════ */}
-                    <section className="pb-2">
-                        <div
-                            className="rounded-2xl px-3 py-2.5 flex items-center justify-between overflow-x-auto scrollbar-hide"
-                            style={{
-                                border: "1px solid rgba(124,92,252,0.15)",
-                                background: "rgba(124,92,252,0.06)",
-                            }}
-                        >
-                            {barIndicators.map((item, idx) => {
-                                const isUp = item.direction === "up"
-                                return (
-                                    <div
-                                        key={idx}
-                                        className="flex items-center gap-2 px-4 md:px-5 py-2 rounded-xl shrink-0 transition-all duration-200 cursor-default"
-                                        onMouseEnter={(e) => e.currentTarget.style.background = "rgba(124,92,252,0.07)"}
-                                        onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
-                                    >
-                                        <span className="text-sm font-normal" style={{ color: "rgba(180,160,255,0.9)" }}>
-                                            {language === 'cs' ? item.labelCs : item.labelEn}
+                    {/* ── KPI Cards ── */}
+                    <section>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5">
+                            {kpiData.map((kpi, idx) => (
+                                <div
+                                    key={idx}
+                                    className="rounded-3xl bg-white/[0.03] backdrop-blur-sm px-5 md:px-7 py-4 md:py-5 min-h-[100px] md:min-h-[120px]"
+                                    style={{
+                                        borderTop: "1px solid rgba(255,255,255,0.12)",
+                                        borderRight: "1px solid rgba(255,255,255,0.12)",
+                                        borderBottom: "1px solid rgba(255,255,255,0.12)",
+                                        borderLeft: `4px solid ${kpi.color}`,
+                                    }}
+                                >
+                                    <p className="text-[10px] md:text-xs font-normal uppercase tracking-widest mb-3"
+                                        style={{ color: "rgba(180,160,255,0.9)" }}>
+                                        {language === "cs" ? kpi.titleCs : kpi.titleEn}
+                                    </p>
+                                    <div className="flex items-baseline gap-1">
+                                        <CountUp
+                                            from={0} to={kpi.value} duration={2} delay={0.1 * idx}
+                                            className="text-[26px] md:text-[42px] font-semibold text-white tabular-nums leading-none"
+                                        />
+                                        <span className="text-xs md:text-sm font-normal" style={{ color: "rgba(180,160,255,0.85)" }}>
+                                            {kpi.suffix}
                                         </span>
-                                        {isUp
-                                            ? <ArrowUpRight className="w-4 h-4" style={{ color: UP_COLOR }} weight="bold" />
-                                            : <ArrowDownRight className="w-4 h-4" style={{ color: DOWN_COLOR }} weight="bold" />
-                                        }
                                     </div>
-                                )
-                            })}
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+
+                    {/* ── Alert Cards ── */}
+                    <section>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-6">
+                        {alertCards.map((card, idx) => (
+                            <div
+                                key={idx}
+                                className="rounded-3xl bg-white/[0.03] backdrop-blur-sm p-5 md:p-7"
+                                style={{
+                                    borderTop: "1px solid rgba(255,255,255,0.12)",
+                                    borderRight: "1px solid rgba(255,255,255,0.12)",
+                                    borderBottom: "1px solid rgba(255,255,255,0.12)",
+                                    borderLeft: `4px solid ${card.color}`,
+                                }}
+                            >
+                                <h3 className="text-base md:text-lg font-semibold text-white mb-2">
+                                    {language === "cs" ? card.titleCs : card.titleEn}
+                                </h3>
+                                <p className="text-sm text-gray-400 leading-relaxed mb-5">
+                                    {language === "cs" ? card.descriptionCs : card.descriptionEn}
+                                </p>
+
+                                <div className="flex items-center justify-between pt-4 border-t border-white/[0.06]">
+                                    <div className="flex items-baseline gap-2">
+                                        <CountUp
+                                            from={0} to={card.metricValue} duration={2} delay={0.5}
+                                            className="text-2xl md:text-3xl font-semibold tabular-nums"
+                                            // @ts-ignore
+                                            style={{ color: card.color }}
+                                        />
+                                        <span className="text-xs text-gray-400">
+                                            {language === "cs" ? card.metricLabelCs : card.metricLabelEn}
+                                        </span>
+                                    </div>
+                                    <Link
+                                        href={card.linkHref}
+                                        className="flex items-center gap-1.5 text-[13px] font-medium transition-colors hover:text-white"
+                                        style={{ color: "rgba(180,160,255,0.9)" }}
+                                    >
+                                        {language === "cs" ? card.linkLabelCs : card.linkLabelEn}
+                                        <ArrowRight className="w-3.5 h-3.5" weight="bold" />
+                                    </Link>
+                                </div>
+                            </div>
+                        ))}
+                        </div>
+                    </section>
+
+                    {/* ── Touch Bar ── */}
+                    <section className="pb-2">
+                        <div className="rounded-3xl bg-white/[0.03] backdrop-blur-sm px-3 py-2.5 flex items-center justify-between overflow-x-auto scrollbar-hide"
+                        style={{ border: "1px solid rgba(255,255,255,0.12)" }}>
+                        {barIndicators.map((item, idx) => {
+                            const isUp = item.direction === "up"
+                            return (
+                                <div key={idx}
+                                    className="flex items-center gap-1.5 px-3 md:px-5 py-2 rounded-xl shrink-0 transition-colors hover:bg-white/[0.04]">
+                                    <span className="text-sm font-normal" style={{ color: "rgba(180,160,255,0.9)" }}>
+                                        {language === "cs" ? item.labelCs : item.labelEn}
+                                    </span>
+                                    {isUp
+                                        ? <ArrowUpRight className="w-4 h-4" style={{ color: UP_COLOR }} weight="bold" />
+                                        : <ArrowDownRight className="w-4 h-4" style={{ color: DOWN_COLOR }} weight="bold" />
+                                    }
+                                </div>
+                            )
+                        })}
                         </div>
                     </section>
 
