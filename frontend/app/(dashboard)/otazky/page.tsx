@@ -23,7 +23,13 @@ export default function OtazkyPage() {
     const [isThinking, setIsThinking] = useState(false)
     const [isInputCentered, setIsInputCentered] = useState(true)
     const [activeChatId, setActiveChatId] = useState<number | null>(null)
-    const [sidebarOpen, setSidebarOpen] = useState(true)
+    const [sidebarOpen, setSidebarOpen] = useState(false)
+
+    // Open sidebar by default on desktop
+    useEffect(() => {
+        const mq = window.matchMedia("(min-width: 768px)")
+        if (mq.matches) setSidebarOpen(true)
+    }, [])
     const [datasetId, setDatasetId] = useState<number | null>(null)
     const [datasets, setDatasets] = useState<Dataset[]>([])
     const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -101,20 +107,22 @@ export default function OtazkyPage() {
             />
 
             {/* Main Chat Area */}
-            <div className="flex-1 flex flex-col relative h-full max-w-full bg-background">
+            <div className="flex-1 flex flex-col relative h-full max-w-full bg-background dark:bg-[#080518]">
                 {/* Header / Model Selector */}
-                <div className="absolute top-0 left-0 w-full p-2 flex items-center justify-between z-10 bg-background border-b border-border/10">
+                <div className="absolute top-0 left-0 w-full p-2 flex items-center justify-between z-10 bg-background dark:bg-[#080518]">
                     <div className="flex items-center">
-                        {!sidebarOpen && (
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => setSidebarOpen(true)}
-                                className="mr-2 text-muted-foreground hover:text-foreground"
-                            >
-                                <SidebarSimple className="w-5 h-5" weight="duotone" />
-                            </Button>
-                        )}
+                        {/* Mobile: always show toggle. Desktop: show when sidebar closed */}
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setSidebarOpen(true)}
+                            className={cn(
+                                "mr-2 text-muted-foreground hover:text-foreground",
+                                sidebarOpen ? "md:hidden" : ""
+                            )}
+                        >
+                            <SidebarSimple className="w-5 h-5" weight="duotone" />
+                        </Button>
                         <Button variant="ghost" className="text-lg font-semibold text-foreground gap-1 hover:bg-muted rounded-xl px-3 ml-2">
                             K2M AI <CaretDown className="w-4 h-4 text-muted-foreground" weight="duotone" />
                         </Button>
@@ -140,7 +148,7 @@ export default function OtazkyPage() {
                     "flex-1 overflow-y-auto w-full pt-16 pb-32 flex justify-center scrollbar-thin scrollbar-thumb-border/40 transition-opacity duration-500",
                     isInputCentered ? "opacity-0 invisible" : "opacity-100 visible"
                 )}>
-                    <div className="w-full max-w-full px-4 md:px-8 space-y-6">
+                    <div className="w-full max-w-full px-3 md:px-8 space-y-4 md:space-y-6">
                         {messages.map((msg) => (
                             <ChatBubble key={msg.id} role={msg.role} content={msg.content} />
                         ))}
@@ -166,7 +174,7 @@ export default function OtazkyPage() {
                     "absolute top-[38%] left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-4 transition-all duration-500 ease-in-out pointer-events-none z-10",
                     isInputCentered ? "opacity-100 visible scale-100" : "opacity-0 invisible scale-95"
                 )}>
-                    <h2 className="text-3xl font-bold bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent tracking-tight">Jak Vám mohu pomoci?</h2>
+                    <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent tracking-tight px-4 text-center">Jak Vám mohu pomoci?</h2>
                 </div>
 
                 {/* Input Area */}

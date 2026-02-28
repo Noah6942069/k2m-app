@@ -31,7 +31,7 @@ export function DashboardSkeleton() {
                         </div>
 
                         {/* KPI Cards Skeleton */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
                             {[...Array(4)].map((_, i) => (
                                 <div key={i} className="rounded-xl border border-border/50 bg-card/50 p-5 space-y-3">
                                     <div className="flex items-center gap-2">
@@ -40,6 +40,16 @@ export function DashboardSkeleton() {
                                     </div>
                                     <Skeleton className="w-24 h-8" />
                                     <Skeleton className="w-12 h-3" />
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Index Score Cards Skeleton */}
+                        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+                            {[...Array(6)].map((_, i) => (
+                                <div key={i} className="rounded-xl border border-border/50 bg-card/50 p-4 space-y-3 border-l-4 border-l-primary/30">
+                                    <Skeleton className="w-20 h-3" />
+                                    <Skeleton className="w-16 h-7" />
                                 </div>
                             ))}
                         </div>

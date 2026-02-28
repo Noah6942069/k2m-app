@@ -34,7 +34,8 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
     const { user, logout } = useAuth()
     const { resolvedTheme } = useTheme()
     const { t } = useTranslation()
-    const pathname = usePathname()
+    const rawPathname = usePathname()
+    const pathname = rawPathname.endsWith('/') && rawPathname !== '/' ? rawPathname.slice(0, -1) : rawPathname
     const [mounted, setMounted] = useState(false)
     const [biOpen, setBiOpen] = useState(false)
 
@@ -87,33 +88,25 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                 className={cn(
                     "group flex items-center gap-3 px-3 h-10 rounded-lg transition-all duration-150 relative",
                     isActive
-                        ? "bg-primary/10 text-primary"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
+                        ? "text-foreground bg-white/15"
+                        : "text-muted-foreground hover:text-foreground hover:bg-white/10",
                     collapsed && "justify-center px-0",
                     isSubItem && !collapsed && "pl-10"
                 )}
             >
-                {/* Active indicator */}
-                {isActive && (
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full" />
-                )}
-
-                <div className={cn(
-                    "w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all duration-150",
-                    isActive
-                        ? "bg-primary/15"
-                        : "bg-transparent group-hover:bg-muted/50"
-                )}>
+                <div
+                    className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all duration-150"
+                >
                     <Icon className={cn(
                         "w-[16px] h-[16px] transition-colors duration-150",
-                        isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                        isActive ? "text-white" : "text-muted-foreground group-hover:text-foreground"
                     )} weight="duotone" />
                 </div>
 
                 {!collapsed && (
                     <span className={cn(
-                        "text-[13px] font-medium truncate",
-                        isActive && "text-primary"
+                        "text-[13px] truncate",
+                        isActive ? "font-semibold text-white" : "font-medium"
                     )}>
                         {item.label}
                     </span>
@@ -131,7 +124,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         >
             {/* Logo Area */}
             <div className={cn(
-                "h-16 flex items-center",
+                "h-14 flex items-center",
                 collapsed ? "justify-center border-b-0" : "px-5 border-b border-border/40"
             )}>
                 {!collapsed && (
@@ -140,7 +133,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                             src={resolvedTheme === 'dark' ? '/k2m-logo-new.png' : '/logo-light.png'}
                             alt="K2M"
                             className={cn(
-                                "h-14 w-auto transition-all duration-300",
+                                "h-12 w-auto transition-all duration-300",
                                 resolvedTheme !== 'dark' && "mix-blend-multiply contrast-125 brightness-110"
                             )}
                         />
@@ -155,38 +148,37 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
 
                     {/* Business Intelligence with dropdown */}
                     <div>
-                        <div className="flex items-center">
+                        <div className={cn(
+                            "group flex items-center rounded-lg transition-all duration-150",
+                            pathname === "/business-intelligence"
+                                ? "bg-white/15"
+                                : "hover:bg-white/10"
+                        )}>
                             {/* Clickable link to BI page */}
                             <Link
                                 href="/business-intelligence"
                                 className={cn(
-                                    "flex-1 group flex items-center gap-3 px-3 h-10 rounded-l-lg transition-all duration-150 relative",
+                                    "flex-1 flex items-center gap-3 px-3 h-10 transition-all duration-150 relative",
                                     pathname === "/business-intelligence"
-                                        ? "bg-primary/10 text-primary"
-                                        : isBiActive
-                                            ? "bg-muted/30 text-foreground"
-                                            : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
-                                    collapsed && "justify-center px-0 rounded-lg"
+                                        ? "text-foreground"
+                                        : "text-muted-foreground group-hover:text-foreground",
+                                    collapsed && "justify-center px-0"
                                 )}
                             >
-                                {pathname === "/business-intelligence" && (
-                                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full" />
-                                )}
-                                <div className={cn(
-                                    "w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all duration-150",
-                                    (pathname === "/business-intelligence" || isBiActive)
-                                        ? "bg-primary/15"
-                                        : "bg-transparent group-hover:bg-muted/50"
-                                )}>
+                                <div
+                                    className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all duration-150"
+                                >
                                     <Brain className={cn(
                                         "w-[16px] h-[16px] transition-colors duration-150",
-                                        (pathname === "/business-intelligence" || isBiActive) ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                                        pathname === "/business-intelligence" ? "text-white" : "text-muted-foreground group-hover:text-foreground"
                                     )} weight="duotone" />
                                 </div>
                                 {!collapsed && (
                                     <span className={cn(
-                                        "text-[13px] font-medium truncate",
-                                        pathname === "/business-intelligence" && "text-primary"
+                                        "text-[13px] truncate",
+                                        pathname === "/business-intelligence"
+                                            ? "font-semibold text-white"
+                                            : "font-medium"
                                     )}>
                                         Business Intelligence
                                     </span>
@@ -199,8 +191,8 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                                     className={cn(
                                         "h-10 px-2 rounded-r-lg transition-colors",
                                         isBiActive
-                                            ? "bg-muted/30 text-foreground hover:bg-muted/50"
-                                            : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                                            ? "text-foreground"
+                                            : "text-muted-foreground group-hover:text-foreground"
                                     )}
                                 >
                                     <CaretDown className={cn(
@@ -257,7 +249,8 @@ export function MobileSidebar() {
     const { user, logout } = useAuth()
     const { theme } = useTheme()
     const { t } = useTranslation()
-    const pathname = usePathname()
+    const rawPathname = usePathname()
+    const pathname = rawPathname.endsWith('/') && rawPathname !== '/' ? rawPathname.slice(0, -1) : rawPathname
     const [open, setOpen] = useState(false)
 
     const mainNavItems = [
@@ -308,19 +301,19 @@ export function MobileSidebar() {
                                     <div className={cn(
                                         "flex items-center gap-3 px-3 h-10 rounded-lg transition-all duration-150 relative",
                                         isActive
-                                            ? "bg-primary/10 text-primary"
+                                            ? "nav-item-active text-primary"
                                             : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                                     )}>
                                         {isActive && (
-                                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full" />
+                                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full" />
                                         )}
                                         <div className={cn(
                                             "w-7 h-7 rounded-lg flex items-center justify-center shrink-0",
-                                            isActive ? "bg-primary/15" : ""
+                                            isActive ? "nav-icon-active" : ""
                                         )}>
                                             <Icon className="w-[16px] h-[16px]" weight="duotone" />
                                         </div>
-                                        <span className="text-[13px] font-medium">{item.label}</span>
+                                        <span className={cn("text-[13px]", isActive ? "font-semibold" : "font-medium")}>{item.label}</span>
                                     </div>
                                 </Link>
                             )
@@ -335,19 +328,19 @@ export function MobileSidebar() {
                                     <div className={cn(
                                         "flex items-center gap-3 px-3 h-10 rounded-lg transition-all duration-150 relative",
                                         isActive
-                                            ? "bg-primary/10 text-primary"
+                                            ? "nav-item-active text-primary"
                                             : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                                     )}>
                                         {isActive && (
-                                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full" />
+                                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full" />
                                         )}
                                         <div className={cn(
                                             "w-7 h-7 rounded-lg flex items-center justify-center shrink-0",
-                                            isActive ? "bg-primary/15" : ""
+                                            isActive ? "nav-icon-active" : ""
                                         )}>
                                             <Icon className="w-[16px] h-[16px]" weight="duotone" />
                                         </div>
-                                        <span className="text-[13px] font-medium">{item.label}</span>
+                                        <span className={cn("text-[13px]", isActive ? "font-semibold" : "font-medium")}>{item.label}</span>
                                     </div>
                                 </Link>
                             )

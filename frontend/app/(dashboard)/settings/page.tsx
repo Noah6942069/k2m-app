@@ -57,9 +57,9 @@ export default function SettingsPage() {
     ]
 
     return (
-        <div className="flex-1 p-6 space-y-6 max-w-4xl">
+        <div className="flex-1 p-4 md:p-6 space-y-5 md:space-y-6 max-w-4xl">
             {/* Header */}
-            <div className="flex items-start justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-foreground">{t.settings.title}</h1>
                     <p className="text-sm text-muted-foreground mt-1">
@@ -68,7 +68,7 @@ export default function SettingsPage() {
                 </div>
                 <Button
                     onClick={handleSave}
-                    className="bg-primary hover:bg-primary/90"
+                    className="bg-primary hover:bg-primary/90 w-full sm:w-auto"
                 >
                     {saved ? (
                         <>

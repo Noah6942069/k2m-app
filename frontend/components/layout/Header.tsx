@@ -17,7 +17,7 @@ export function Header() {
     const [showUserMenu, setShowUserMenu] = useState(false)
 
     return (
-        <header className="sticky top-0 z-40 h-14 bg-background/80 backdrop-blur-md border-b border-border/40">
+        <header className="sticky top-0 z-40 h-14 bg-background border-b border-border/40">
             <div className="flex items-center justify-between h-full px-4 md:px-6">
                 {/* Left: Mobile Menu */}
                 <div className="flex items-center gap-3">

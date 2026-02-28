@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Plus, PaperPlaneTilt, StopCircle } from "@phosphor-icons/react"
 import { useRef, useEffect } from "react"
+import { useTheme } from "next-themes"
 
 interface ChatInputProps {
     inputValue: string
@@ -23,6 +24,8 @@ export function ChatInput({
     onSendMessage
 }: ChatInputProps) {
     const textareaRef = useRef<HTMLTextAreaElement>(null)
+    const { resolvedTheme } = useTheme()
+    const isDark = resolvedTheme === 'dark'
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === "Enter" && !e.shiftKey) {
@@ -40,17 +43,24 @@ export function ChatInput({
     }, [inputValue])
 
     return (
-        <div className={cn(
-            "absolute left-0 right-0 transition-all duration-500 ease-in-out z-20 px-4",
-            isInputCentered
-                ? "top-[52%] -translate-y-1/2 bg-transparent"
-                : "bottom-0 bg-gradient-to-t from-background via-background to-transparent pt-10 pb-6"
-        )}>
+        <div
+            className={cn(
+                "absolute left-0 right-0 transition-all duration-500 ease-in-out z-20 px-3 md:px-4",
+                isInputCentered
+                    ? "top-[52%] -translate-y-1/2 bg-transparent"
+                    : "bottom-0 pt-6 md:pt-10 pb-4 md:pb-6"
+            )}
+            style={!isInputCentered && isDark ? {
+                background: 'linear-gradient(to top, #080518 60%, transparent)'
+            } : !isInputCentered ? {
+                background: 'linear-gradient(to top, var(--background) 60%, transparent)'
+            } : undefined}
+        >
             <div className={cn(
                 "mx-auto w-full relative transition-all duration-500",
                 isInputCentered ? "max-w-2xl" : "max-w-3xl"
             )}>
-                <div className="relative flex items-end gap-2 bg-muted/50 dark:bg-[#1a1f2e] rounded-2xl border border-border/40 focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20 overflow-hidden shadow-2xl shadow-black/10 dark:shadow-black/40 transition-all hover:border-border/60">
+                <div className="relative flex items-end gap-2 bg-muted/50 dark:bg-[#0b081f] rounded-full border border-border/40 focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20 overflow-hidden shadow-2xl shadow-black/10 dark:shadow-black/40 transition-all hover:border-border/60">
                     <Button variant="ghost" size="icon" className="mb-2 ml-2 text-muted-foreground hover:text-foreground rounded-full transition-colors">
                         <Plus className="w-5 h-5" weight="duotone" />
                     </Button>

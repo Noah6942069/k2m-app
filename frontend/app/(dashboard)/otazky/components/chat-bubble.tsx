@@ -25,7 +25,7 @@ export function ChatBubble({ role, content }: ChatBubbleProps) {
             <div className={cn(
                 "relative max-w-[85%] text-[16px] leading-7",
                 role === "user"
-                    ? "bg-muted/50 dark:bg-[#1a1f2e] text-foreground border border-border/50 px-5 py-2.5 rounded-3xl rounded-tr-sm"
+                    ? "bg-muted/50 dark:bg-[#0b081f] text-foreground border border-border/40 px-5 py-2.5 rounded-3xl rounded-tr-sm"
                     : "text-foreground px-1 py-1"
             )}>
                 {content}

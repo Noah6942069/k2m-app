@@ -4,7 +4,7 @@ import { useTranslation } from "@/lib/i18n/language-context"
 import { useAuth } from "@/lib/auth-context"
 import { CommandPalette } from "@/components/CommandPalette"
 import Link from "next/link"
-import { Fragment, Suspense, useState, useEffect } from "react"
+import { Fragment, Suspense, useState, useEffect, useMemo } from "react"
 import { DashboardSkeleton } from "@/components/skeletons"
 import CountUp from "@/components/ui/CountUp"
 import {
@@ -40,13 +40,6 @@ function getScoreStatus(score: number) {
     }
 }
 
-// ── Index Score Color ──
-function getIndexColor(score: number): string {
-    if (score >= 70) return "#7C5CFC"
-    if (score >= 40) return "#5b8def"
-    return "#2dd4bf"
-}
-
 // ── Health Score ──
 const HEALTH_SCORE = 82
 const RADIUS = 88
@@ -64,10 +57,10 @@ const keyMetricsData = [
 
 // ── KPI Data (below panels) ──
 const kpiData = [
-    { titleCs: "Tržby", titleEn: "Revenue", value: 24.8, suffix: "M Kč", direction: "up" as const, color: "#7C5CFC" },
-    { titleCs: "EBITDA", titleEn: "EBITDA", value: 5.9, suffix: "M Kč", direction: "up" as const, color: "#5b8def" },
-    { titleCs: "Provozní Cash Flow", titleEn: "Op. Cash Flow", value: 3.2, suffix: "M Kč", direction: "up" as const, color: "#2dd4bf" },
-    { titleCs: "Working Capital", titleEn: "Working Capital", value: 8.4, suffix: "M Kč", direction: "up" as const, color: "#7C5CFC" },
+    { titleCs: "Tržby", titleEn: "Revenue", value: 24.8, suffix: "M Kč", trend: 5.2, direction: "up" as const, color: "#7C5CFC" },
+    { titleCs: "EBITDA", titleEn: "EBITDA", value: 5.9, suffix: "M Kč", trend: 3.8, direction: "up" as const, color: "#5b8def" },
+    { titleCs: "Provozní Cash Flow", titleEn: "Op. Cash Flow", value: 3.2, suffix: "M Kč", trend: -2.1, direction: "down" as const, color: "#2dd4bf" },
+    { titleCs: "Working Capital", titleEn: "Working Capital", value: 8.4, suffix: "M Kč", trend: 1.4, direction: "up" as const, color: "#7C5CFC" },
 ]
 
 // ── Index Score Data ──
@@ -110,17 +103,6 @@ const alertCards = [
     },
 ]
 
-// ── Bottom Bar Indicators ──
-const barIndicators = [
-    { labelCs: "Cash", labelEn: "Cash", direction: "up" as const },
-    { labelCs: "Runway", labelEn: "Runway", direction: "down" as const },
-    { labelCs: "Marže", labelEn: "Margin", direction: "up" as const },
-    { labelCs: "Tržby", labelEn: "Revenue", direction: "up" as const },
-    { labelCs: "Náklady", labelEn: "Costs", direction: "down" as const },
-    { labelCs: "Retence", labelEn: "Retention", direction: "up" as const },
-    { labelCs: "Konverze", labelEn: "Conversion", direction: "up" as const },
-]
-
 function DashboardContent() {
     const { language } = useTranslation()
     const { user } = useAuth()
@@ -135,6 +117,17 @@ function DashboardContent() {
 
     const status = getScoreStatus(HEALTH_SCORE)
 
+    const formattedDate = useMemo(() => {
+        const now = new Date()
+        if (language === "cs") {
+            return now.toLocaleDateString("cs-CZ", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
+        }
+        return now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })
+    }, [language])
+
+    const displayName = user?.displayName || user?.email?.split("@")[0] || ""
+    const companyName = "Altech"
+
     return (
         <>
             <CommandPalette />
@@ -142,20 +135,34 @@ function DashboardContent() {
             <div className="flex-1 relative overflow-hidden">
                 <div className="relative max-w-[1600px] mx-auto px-4 md:px-10 w-full flex flex-col gap-10 md:gap-16 py-8 md:py-14">
 
+                    {/* ── Greeting ── */}
+                    <section className="text-center">
+                        <h1 className="text-xl md:text-2xl font-semibold text-white">
+                            {language === "cs" ? `Dobrý den, ${companyName}` : `Welcome, ${companyName}`}
+                        </h1>
+                        <p className="text-sm mt-1 capitalize" style={{ color: "rgba(180,160,255,0.7)" }}>
+                            {formattedDate}
+                        </p>
+                    </section>
+
                     {/* ── Health Score + Side Panels ── */}
-                    <section className="pt-10 md:pt-20 pb-4 md:pb-56 lg:pb-52">
-                        <div className="flex flex-col items-center gap-8 md:gap-0 md:relative">
+                    <section className="pt-4 md:pt-10 pb-4 lg:pb-52">
+                        <div className="flex flex-col items-center gap-8 lg:gap-0 lg:relative">
 
                             {/* Key Metrics Panel (Left) */}
                             <div
-                                className="rounded-3xl bg-white/[0.03] backdrop-blur-sm px-6 md:px-8 py-4 md:py-5 w-full max-w-[400px] md:absolute md:left-0 md:top-1/2 md:-translate-y-1/2 md:w-[380px] lg:w-[420px] flex flex-col justify-center order-2 md:order-none"
+                                className="rounded-3xl bg-white/[0.03] backdrop-blur-sm px-6 md:px-8 py-4 md:py-5 w-full max-w-[400px] lg:absolute lg:left-0 lg:top-1/2 lg:-translate-y-1/2 lg:w-[380px] xl:w-[420px] flex flex-col justify-center order-2 lg:order-none"
                                 style={{
                                     borderTop: "1px solid rgba(255,255,255,0.12)",
                                     borderLeft: "1px solid rgba(255,255,255,0.12)",
                                     borderBottom: "1px solid rgba(255,255,255,0.12)",
-                                    borderRight: "4px solid #5b8def",
+                                    borderRight: "4px solid #7C5CFC",
                                 }}
                             >
+                                <p className="text-[10px] font-medium uppercase tracking-widest mb-2 pb-2"
+                                    style={{ color: "rgba(180,160,255,0.6)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                                    {language === "cs" ? "Finanční metriky" : "Financial Metrics"}
+                                </p>
                                 {keyMetricsData.map((item, idx) => (
                                     <Fragment key={idx}>
                                         <div className="flex items-center justify-between py-2.5 md:py-3">
@@ -196,57 +203,59 @@ function DashboardContent() {
                             </div>
 
                             {/* Circle (centered) */}
-                            <div className="relative w-44 h-44 md:w-56 md:h-56 shrink-0 order-1 md:order-none">
-                                {/* Subtle glow */}
-                                <div
-                                    className="absolute rounded-full pointer-events-none"
-                                    style={{
-                                        inset: "-50px",
-                                        background: "radial-gradient(circle, rgba(124,92,252,0.25) 0%, rgba(91,141,239,0.12) 40%, transparent 70%)",
-                                        filter: "blur(30px)",
-                                    }}
-                                />
-
-                                <svg className="w-full h-full -rotate-90" viewBox="0 0 200 200">
-                                    <defs>
-                                        <linearGradient id="scoreGrad" x1="0%" y1="100%" x2="100%" y2="0%">
-                                            <stop offset="0%" stopColor="#2dd4bf" />
-                                            <stop offset="50%" stopColor="#5b8def" />
-                                            <stop offset="100%" stopColor="#7C5CFC" />
-                                        </linearGradient>
-                                    </defs>
-
-                                    {/* Track */}
-                                    <circle cx="100" cy="100" r={RADIUS} fill="none"
-                                        stroke="rgba(124,92,252,0.08)" strokeWidth="7" />
-
-                                    {/* Progress */}
-                                    <circle cx="100" cy="100" r={RADIUS} fill="none"
-                                        stroke="url(#scoreGrad)" strokeWidth="7" strokeLinecap="round"
-                                        strokeDasharray={CIRCUMFERENCE} strokeDashoffset={circleOffset}
-                                        style={{ transition: "stroke-dashoffset 2.5s cubic-bezier(0.4, 0, 0.2, 1)" }}
+                            <div className="flex flex-col items-center gap-3 order-1 lg:order-none">
+                                <div className="relative w-44 h-44 md:w-56 md:h-56 shrink-0">
+                                    {/* Glow */}
+                                    <div
+                                        className="absolute rounded-full pointer-events-none"
+                                        style={{
+                                            inset: "-50px",
+                                            background: "radial-gradient(circle, rgba(124,92,252,0.35) 0%, rgba(91,141,239,0.15) 40%, transparent 70%)",
+                                            filter: "blur(30px)",
+                                        }}
                                     />
-                                </svg>
 
-                                {/* Center content */}
-                                <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5">
-                                    <CountUp
-                                        from={0} to={HEALTH_SCORE} duration={2.5} delay={0.2}
-                                        className="text-5xl md:text-7xl font-light text-white tabular-nums tracking-tight"
-                                    />
-                                    <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full"
-                                        style={{ background: status.bg, border: `1px solid ${status.border}` }}>
-                                        <div className="w-1.5 h-1.5 rounded-full" style={{ background: status.dotColor }} />
-                                        <p className="text-[11px] font-medium" style={{ color: status.color }}>
-                                            {language === "cs" ? status.labelCs : status.labelEn}
-                                        </p>
+                                    <svg className="w-full h-full -rotate-90" viewBox="0 0 200 200">
+                                        <defs>
+                                            <linearGradient id="scoreGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+                                                <stop offset="0%" stopColor="#2dd4bf" />
+                                                <stop offset="50%" stopColor="#5b8def" />
+                                                <stop offset="100%" stopColor="#7C5CFC" />
+                                            </linearGradient>
+                                        </defs>
+
+                                        {/* Track */}
+                                        <circle cx="100" cy="100" r={RADIUS} fill="none"
+                                            stroke="rgba(124,92,252,0.08)" strokeWidth="7" />
+
+                                        {/* Progress */}
+                                        <circle cx="100" cy="100" r={RADIUS} fill="none"
+                                            stroke="url(#scoreGrad)" strokeWidth="7" strokeLinecap="round"
+                                            strokeDasharray={CIRCUMFERENCE} strokeDashoffset={circleOffset}
+                                            style={{ transition: "stroke-dashoffset 2.5s cubic-bezier(0.4, 0, 0.2, 1)" }}
+                                        />
+                                    </svg>
+
+                                    {/* Center content */}
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5">
+                                        <CountUp
+                                            from={0} to={HEALTH_SCORE} duration={2.5} delay={0.2}
+                                            className="text-5xl md:text-7xl font-light text-white tabular-nums tracking-tight"
+                                        />
+                                        <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full"
+                                            style={{ background: status.bg, border: `1px solid ${status.border}` }}>
+                                            <div className="w-1.5 h-1.5 rounded-full" style={{ background: status.dotColor }} />
+                                            <p className="text-[11px] font-medium" style={{ color: status.color }}>
+                                                {language === "cs" ? status.labelCs : status.labelEn}
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Index Breakdown Panel (Right) */}
                             <div
-                                className="rounded-3xl bg-white/[0.03] backdrop-blur-sm px-6 md:px-8 py-4 md:py-5 w-full max-w-[400px] md:absolute md:right-0 md:top-1/2 md:-translate-y-1/2 md:w-[380px] lg:w-[420px] flex flex-col justify-center order-3 md:order-none"
+                                className="rounded-3xl bg-white/[0.03] backdrop-blur-sm px-6 md:px-8 py-4 md:py-5 w-full max-w-[400px] lg:absolute lg:right-0 lg:top-1/2 lg:-translate-y-1/2 lg:w-[380px] xl:w-[420px] flex flex-col justify-center order-3 lg:order-none"
                                 style={{
                                     borderTop: "1px solid rgba(255,255,255,0.12)",
                                     borderRight: "1px solid rgba(255,255,255,0.12)",
@@ -254,6 +263,10 @@ function DashboardContent() {
                                     borderLeft: "4px solid #7C5CFC",
                                 }}
                             >
+                                <p className="text-[10px] font-medium uppercase tracking-widest mb-2 pb-2"
+                                    style={{ color: "rgba(180,160,255,0.6)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                                    {language === "cs" ? "Indexy" : "Indexes"}
+                                </p>
                                 {indexScoreData.map((item, idx) => (
                                     <Fragment key={idx}>
                                         <div className="flex items-center justify-between py-2.5 md:py-3">
@@ -293,11 +306,15 @@ function DashboardContent() {
 
                     {/* ── KPI Cards ── */}
                     <section>
+                        <p className="text-[10px] md:text-xs font-medium uppercase tracking-widest mb-4"
+                            style={{ color: "rgba(180,160,255,0.6)" }}>
+                            {language === "cs" ? "Klíčové ukazatele" : "Key Performance"}
+                        </p>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5">
                             {kpiData.map((kpi, idx) => (
                                 <div
                                     key={idx}
-                                    className="rounded-3xl bg-white/[0.03] backdrop-blur-sm px-5 md:px-7 py-4 md:py-5 min-h-[100px] md:min-h-[120px]"
+                                    className="rounded-3xl bg-white/[0.03] backdrop-blur-sm px-5 md:px-7 py-4 md:py-5 min-h-[100px] md:min-h-[120px] transition-all duration-200 hover:bg-white/[0.06] hover:-translate-y-0.5"
                                     style={{
                                         borderTop: "1px solid rgba(255,255,255,0.12)",
                                         borderRight: "1px solid rgba(255,255,255,0.12)",
@@ -305,10 +322,22 @@ function DashboardContent() {
                                         borderLeft: `4px solid ${kpi.color}`,
                                     }}
                                 >
-                                    <p className="text-[10px] md:text-xs font-normal uppercase tracking-widest mb-3"
-                                        style={{ color: "rgba(180,160,255,0.9)" }}>
-                                        {language === "cs" ? kpi.titleCs : kpi.titleEn}
-                                    </p>
+                                    <div className="flex items-center justify-between mb-3">
+                                        <p className="text-[10px] md:text-xs font-normal uppercase tracking-widest"
+                                            style={{ color: "rgba(180,160,255,0.9)" }}>
+                                            {language === "cs" ? kpi.titleCs : kpi.titleEn}
+                                        </p>
+                                        <span
+                                            className="flex items-center gap-0.5 text-[10px] md:text-[11px] font-semibold tabular-nums"
+                                            style={{ color: kpi.direction === "up" ? UP_COLOR : DOWN_COLOR }}
+                                        >
+                                            {kpi.direction === "up"
+                                                ? <ArrowUpRight className="w-3 h-3" weight="bold" />
+                                                : <ArrowDownRight className="w-3 h-3" weight="bold" />
+                                            }
+                                            {kpi.trend > 0 ? "+" : ""}{kpi.trend}%
+                                        </span>
+                                    </div>
                                     <div className="flex items-baseline gap-1">
                                         <CountUp
                                             from={0} to={kpi.value} duration={2} delay={0.1 * idx}
@@ -329,7 +358,7 @@ function DashboardContent() {
                         {alertCards.map((card, idx) => (
                             <div
                                 key={idx}
-                                className="rounded-3xl bg-white/[0.03] backdrop-blur-sm p-5 md:p-7"
+                                className="rounded-3xl bg-white/[0.03] backdrop-blur-sm p-5 md:p-7 transition-all duration-200 hover:bg-white/[0.06] hover:-translate-y-0.5"
                                 style={{
                                     borderTop: "1px solid rgba(255,255,255,0.12)",
                                     borderRight: "1px solid rgba(255,255,255,0.12)",
@@ -367,28 +396,6 @@ function DashboardContent() {
                                 </div>
                             </div>
                         ))}
-                        </div>
-                    </section>
-
-                    {/* ── Touch Bar ── */}
-                    <section className="pb-2">
-                        <div className="rounded-3xl bg-white/[0.03] backdrop-blur-sm px-3 py-2.5 flex items-center justify-between overflow-x-auto scrollbar-hide"
-                        style={{ border: "1px solid rgba(255,255,255,0.12)" }}>
-                        {barIndicators.map((item, idx) => {
-                            const isUp = item.direction === "up"
-                            return (
-                                <div key={idx}
-                                    className="flex items-center gap-1.5 px-3 md:px-5 py-2 rounded-xl shrink-0 transition-colors hover:bg-white/[0.04]">
-                                    <span className="text-sm font-normal" style={{ color: "rgba(180,160,255,0.9)" }}>
-                                        {language === "cs" ? item.labelCs : item.labelEn}
-                                    </span>
-                                    {isUp
-                                        ? <ArrowUpRight className="w-4 h-4" style={{ color: UP_COLOR }} weight="bold" />
-                                        : <ArrowDownRight className="w-4 h-4" style={{ color: DOWN_COLOR }} weight="bold" />
-                                    }
-                                </div>
-                            )
-                        })}
                         </div>
                     </section>
 

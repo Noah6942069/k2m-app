@@ -28,7 +28,7 @@ export default function DashboardLayout({
                     <Header />
                     <main className="flex-1 overflow-y-auto scrollbar-thin">
                         <div className={cn(
-                            "p-6 md:p-8 lg:p-10",
+                            "p-4 md:p-6 lg:p-10",
                             "animate-in fade-in slide-in-from-bottom-4 duration-500"
                         )}>
                             {children}

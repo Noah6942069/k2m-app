@@ -422,19 +422,31 @@ const tabs = [
         id: "optimalizace",
         label: "Optimalizace",
         icon: TrendUp,
-        activeColor: "text-emerald-500 border-emerald-500"
+        color: "#10b981",
+        colorClass: "text-emerald-500",
+        bgClass: "bg-emerald-500/10",
+        borderClass: "border-emerald-500/25",
+        glowClass: "shadow-emerald-500/15",
     },
     {
         id: "rizika-scenare",
         label: "Otázky",
         icon: Question,
-        activeColor: "text-blue-500 border-blue-500"
+        color: "#3b82f6",
+        colorClass: "text-blue-500",
+        bgClass: "bg-blue-500/10",
+        borderClass: "border-blue-500/25",
+        glowClass: "shadow-blue-500/15",
     },
     {
         id: "what-if",
         label: "Co by kdyby",
         icon: Warning,
-        activeColor: "text-orange-500 border-orange-500"
+        color: "#f97316",
+        colorClass: "text-orange-500",
+        bgClass: "bg-orange-500/10",
+        borderClass: "border-orange-500/25",
+        glowClass: "shadow-orange-500/15",
     },
 ]
 
@@ -456,25 +468,10 @@ export default function DoporuceniPage() {
 
     return (
         <div className="flex-1 min-h-screen">
-            {/* Header */}
-            <div className="px-6 md:px-10 pt-10 pb-6">
-                <div className="flex items-center gap-4 mb-4">
-                    <div className="w-12 h-12 rounded-2xl bg-purple-500/15 flex items-center justify-center border border-purple-500/20 shadow-lg shadow-purple-500/5">
-                        <Lightbulb className="w-6 h-6 text-purple-400" weight="duotone" />
-                    </div>
-                    <div>
-                        <h1 className="text-3xl md:text-4xl font-bold">Doporučení</h1>
-                        <p className="text-gray-400 mt-1">
-                            Přehled optimalizací a doporučení pro vaše podnikání
-                        </p>
-                    </div>
-                </div>
-            </div>
-
             {/* Content Area */}
-            <div className="px-6 md:px-10 py-8">
-                {/* Tab Navigation - Underline Style */}
-                <div className="flex gap-8 mb-12 border-b border-white/10">
+            <div className="px-4 md:px-10 pt-6 md:pt-8 pb-6 md:pb-8">
+                {/* Tab Navigation */}
+                <div className="flex items-center gap-2 md:gap-3 mb-8 md:mb-12 overflow-x-auto scrollbar-hide">
                     {tabs.map((tab: any) => {
                         const Icon = tab.icon
                         const isActive = activeTab === tab.id
@@ -483,13 +480,20 @@ export default function DoporuceniPage() {
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
                                 className={cn(
-                                    "flex items-center gap-2.5 px-1 pb-4 text-sm font-medium transition-all duration-300 border-b-2 -mb-[1px]",
+                                    "relative flex items-center gap-2.5 px-5 md:px-6 py-3 md:py-3.5 rounded-2xl text-sm font-semibold transition-all duration-300 shrink-0 whitespace-nowrap cursor-pointer border",
                                     isActive
-                                        ? cn("text-white", tab.activeColor)
-                                        : "text-gray-500 hover:text-gray-300 border-transparent"
+                                        ? cn("text-white shadow-lg", tab.bgClass, tab.borderClass, `shadow-lg ${tab.glowClass}`)
+                                        : "text-gray-500 bg-white/[0.02] border-white/[0.06] hover:text-gray-300 hover:bg-white/[0.05] hover:border-white/[0.1]"
                                 )}
                             >
-                                <Icon className={cn("w-4 h-4", isActive ? "" : "text-gray-500")} weight="duotone" />
+                                <div className={cn(
+                                    "w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-300",
+                                    isActive
+                                        ? cn("bg-white/[0.12]")
+                                        : "bg-white/[0.04]"
+                                )}>
+                                    <Icon className={cn("w-[18px] h-[18px]", isActive ? tab.colorClass : "text-gray-500")} weight="duotone" />
+                                </div>
                                 {tab.label}
                             </button>
                         )
@@ -498,7 +502,7 @@ export default function DoporuceniPage() {
 
                 {/* Optimalizace Tab Content */}
                 {activeTab === "optimalizace" && (
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-10">
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6 md:space-y-10">
 
                         {/* Section Header - Klíčová doporučení */}
                         <div className="flex items-center gap-4">
@@ -514,7 +518,7 @@ export default function DoporuceniPage() {
                                     <div
                                         key={`summary-${item.id}`}
                                         className={cn(
-                                            "relative rounded-2xl border border-white/10 p-6 transition-all duration-300 overflow-hidden",
+                                            "relative rounded-2xl border border-white/10 p-4 md:p-6 transition-all duration-300 overflow-hidden",
                                             item.color === "emerald" && "border-l-4 border-l-emerald-500",
                                             item.color === "blue" && "border-l-4 border-l-blue-500",
                                             item.color === "violet" && "border-l-4 border-l-violet-500"
@@ -559,8 +563,8 @@ export default function DoporuceniPage() {
                                         className="rounded-3xl border border-white/5 bg-white/[0.02] backdrop-blur-sm overflow-hidden transition-all duration-300"
                                     >
                                         {/* Two-column layout */}
-                                        <div className="p-8 md:p-10">
-                                            <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
+                                        <div className="p-5 md:p-10">
+                                            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 md:gap-10">
                                                 {/* Left column - Description */}
                                                 <div className="lg:col-span-3">
                                                     <div className="flex items-center gap-4 mb-5">
@@ -643,13 +647,13 @@ export default function DoporuceniPage() {
                                         {/* Expanded Content */}
                                         {isExpanded && (
                                             <div className="border-t border-white/5 animate-in slide-in-from-top-2 duration-500 bg-white/[0.01]">
-                                                <div className="p-8 md:p-10 space-y-10">
+                                                <div className="p-4 md:p-10 space-y-6 md:space-y-10">
 
                                                     {/* 4 Stat Cards */}
                                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                                         {item.stats.map((stat, idx) => (
-                                                            <div key={idx} className="rounded-2xl bg-white/[0.03] border border-white/5 p-5 text-center">
-                                                                <p className={cn("text-2xl font-bold mb-1", item.accentColor)}>{stat.value}</p>
+                                                            <div key={idx} className="rounded-2xl bg-white/[0.03] border border-white/5 p-3 md:p-5 text-center">
+                                                                <p className={cn("text-xl md:text-2xl font-bold mb-1", item.accentColor)}>{stat.value}</p>
                                                                 <p className="text-xs text-gray-500">{stat.label}</p>
                                                                 {stat.subtitle && (
                                                                     <p className={cn("text-xs mt-1", stat.subtitleColor === "emerald" ? "text-emerald-500" : "text-cyan-500")}>
@@ -663,26 +667,26 @@ export default function DoporuceniPage() {
                                                     {/* 2-Column Grid for Campaigns and Projections */}
                                                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                                         {/* Performance by Campaigns */}
-                                                        <div className="rounded-2xl bg-white/[0.02] border border-white/5 p-8">
+                                                        <div className="rounded-2xl bg-white/[0.02] border border-white/5 p-4 md:p-8">
                                                             <h4 className="text-lg font-bold text-white mb-6">Výkon podle kampaní</h4>
                                                             <div className="space-y-4">
                                                                 {item.campaigns.map((campaign, idx) => (
-                                                                    <div key={idx} className="flex items-center gap-4">
-                                                                        <span className="text-sm text-gray-400 w-40 shrink-0">{campaign.name}</span>
+                                                                    <div key={idx} className="flex items-center gap-3 md:gap-4">
+                                                                        <span className="text-xs md:text-sm text-gray-400 w-28 md:w-40 shrink-0">{campaign.name}</span>
                                                                         <div className="flex-1 h-3.5 rounded-full bg-white/5 overflow-hidden">
                                                                             <div
                                                                                 className="h-full rounded-full transition-all duration-700"
                                                                                 style={{ width: `${campaign.conversion * 20}%`, backgroundColor: campaign.color }}
                                                                             />
                                                                         </div>
-                                                                        <span className="text-sm font-bold text-white w-24 text-right">{campaign.conversion}% konverze</span>
+                                                                        <span className="text-xs md:text-sm font-bold text-white w-auto md:w-24 text-right shrink-0">{campaign.conversion}%</span>
                                                                     </div>
                                                                 ))}
                                                             </div>
                                                         </div>
 
                                                         {/* Projections After Increase */}
-                                                        <div className="rounded-2xl bg-white/[0.02] border border-white/5 p-8">
+                                                        <div className="rounded-2xl bg-white/[0.02] border border-white/5 p-4 md:p-8">
                                                             <h4 className="text-lg font-bold text-white mb-6">Projekce po navýšení</h4>
                                                             <div className="space-y-4">
                                                                 {item.projectionList.map((proj, idx) => (
@@ -719,7 +723,7 @@ export default function DoporuceniPage() {
 
                 {/* Otázky Tab */}
                 {activeTab === "rizika-scenare" && (
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-5 md:space-y-6">
                         {/* Section Header */}
                         <div className="flex items-center gap-4">
                             <div className="w-1.5 h-8 rounded-full bg-blue-500" />
@@ -735,7 +739,7 @@ export default function DoporuceniPage() {
                                 return (
                                     <div
                                         key={card.id}
-                                        className="rounded-3xl border border-white/5 bg-white/[0.02] p-6 md:p-7 overflow-hidden"
+                                        className="rounded-3xl border border-white/5 bg-white/[0.02] p-4 md:p-7 overflow-hidden"
                                     >
                                         <div className={cn(
                                             "grid grid-cols-1 gap-6 items-center",
@@ -757,7 +761,7 @@ export default function DoporuceniPage() {
                                                     <div className="absolute inset-0 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12),0_2px_8px_rgb(0,0,0,0.08)] group-hover:shadow-[0_12px_40px_rgb(0,0,0,0.16),0_4px_12px_rgb(0,0,0,0.12)] transition-shadow duration-300" />
 
                                                     {/* Chart */}
-                                                    <div className="relative w-[200px] h-[200px] transition-all duration-300 group-hover:scale-[1.03]" style={{ filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.1))' }}>
+                                                    <div className="relative w-[160px] h-[160px] md:w-[200px] md:h-[200px] transition-all duration-300 group-hover:scale-[1.03]" style={{ filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.1))' }}>
                                                         <ResponsiveContainer width="100%" height="100%">
                                                             <PieChart>
                                                                 <Pie
@@ -831,7 +835,7 @@ export default function DoporuceniPage() {
 
                 {/* What If Tab */}
                 {activeTab === "what-if" && (
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-5 md:space-y-6">
                         {/* Section Header */}
                         <div className="flex items-center gap-4">
                             <div className="w-1.5 h-8 rounded-full bg-orange-500" />
@@ -847,7 +851,7 @@ export default function DoporuceniPage() {
                                 return (
                                     <div
                                         key={card.id}
-                                        className="rounded-3xl border border-white/5 bg-white/[0.02] p-6 md:p-7 overflow-hidden"
+                                        className="rounded-3xl border border-white/5 bg-white/[0.02] p-4 md:p-7 overflow-hidden"
                                     >
                                         <div className={cn(
                                             "grid grid-cols-1 gap-6 items-center",
@@ -863,7 +867,7 @@ export default function DoporuceniPage() {
                                                     <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_30%_30%,rgba(249,115,22,0.08),transparent_70%)]" />
                                                     <div className="absolute inset-0 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12),0_2px_8px_rgb(0,0,0,0.08)] group-hover:shadow-[0_12px_40px_rgb(0,0,0,0.16),0_4px_12px_rgb(0,0,0,0.12)] transition-shadow duration-300" />
 
-                                                    <div className="relative w-[200px] h-[200px] transition-all duration-300 group-hover:scale-[1.03]" style={{ filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.1))' }}>
+                                                    <div className="relative w-[160px] h-[160px] md:w-[200px] md:h-[200px] transition-all duration-300 group-hover:scale-[1.03]" style={{ filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.1))' }}>
                                                         <ResponsiveContainer width="100%" height="100%">
                                                             <PieChart>
                                                                 <Pie

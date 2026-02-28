@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react"
 import {
-    Shield, Users, HardDrives, Wallet,
+    Users, HardDrives, Wallet,
     ArrowRight, Lightbulb, CheckCircle, CaretDown, CaretUp,
     TrendDown, Info, Clock, ArrowUpRight, ArrowDownRight
 } from "@phosphor-icons/react"
@@ -175,28 +175,13 @@ export default function RizikaPage() {
 
     return (
         <div className="flex-1 min-h-screen">
-            {/* Header */}
-            <div className="px-6 md:px-10 pt-10 pb-6">
-                <div className="flex items-center gap-4 mb-4">
-                    <div className="w-12 h-12 rounded-2xl bg-purple-500/15 flex items-center justify-center border border-purple-500/20 shadow-lg shadow-purple-500/5">
-                        <Shield className="w-6 h-6 text-purple-400" weight="duotone" />
-                    </div>
-                    <div>
-                        <h1 className="text-3xl md:text-4xl font-bold">Analýza Rizik</h1>
-                        <p className="text-gray-400 mt-1">
-                            Detailní přehled hrozeb s navrženými mitigačními strategiemi
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <div className="px-6 md:px-10 py-8 space-y-10">
+            <div className="px-4 md:px-10 pt-6 pb-6 space-y-8 md:space-y-10">
 
                 {/* === COMPACT OVERVIEW ROW === */}
                 <div className="rounded-3xl border border-white/5 bg-white/[0.02] backdrop-blur-sm">
                     <div className="flex flex-col md:flex-row md:items-center md:divide-x divide-white/5">
                         {/* Risk Score */}
-                        <div className="flex items-center gap-4 px-8 py-5">
+                        <div className="flex items-center gap-4 px-4 md:px-8 py-4 md:py-5">
                             <div className="w-12 h-12 rounded-full border-2 border-purple-500/40 flex items-center justify-center">
                                 <CountUp from={0} to={72} duration={2} className="text-lg font-bold text-purple-400" />
                             </div>
@@ -207,7 +192,7 @@ export default function RizikaPage() {
                         </div>
 
                         {/* Vysoká */}
-                        <div className="flex items-center gap-4 px-8 py-5 flex-1">
+                        <div className="flex items-center gap-4 px-4 md:px-8 py-4 md:py-5 flex-1">
                             <div className="w-2.5 h-2.5 rounded-full bg-purple-500 shrink-0" />
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center justify-between mb-1.5">
@@ -224,7 +209,7 @@ export default function RizikaPage() {
                         </div>
 
                         {/* Střední */}
-                        <div className="flex items-center gap-4 px-8 py-5 flex-1">
+                        <div className="flex items-center gap-4 px-4 md:px-8 py-4 md:py-5 flex-1">
                             <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0" />
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center justify-between mb-1.5">
@@ -241,7 +226,7 @@ export default function RizikaPage() {
                         </div>
 
                         {/* Nízká */}
-                        <div className="flex items-center gap-4 px-8 py-5 flex-1">
+                        <div className="flex items-center gap-4 px-4 md:px-8 py-4 md:py-5 flex-1">
                             <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" />
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center justify-between mb-1.5">
@@ -280,7 +265,7 @@ export default function RizikaPage() {
                                     )}
                                 >
                                     {/* Collapsed Header */}
-                                    <div className="p-6 md:p-8">
+                                    <div className="p-4 md:p-8">
                                         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                                             {/* Left: Icon + Title + Badge */}
                                             <div className="flex items-center gap-4 shrink-0">
@@ -301,11 +286,11 @@ export default function RizikaPage() {
                                             </p>
 
                                             {/* Right: Buttons */}
-                                            <div className="flex items-center gap-3 shrink-0">
+                                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 md:gap-3 shrink-0 w-full sm:w-auto">
                                                 <Button
                                                     variant="outline"
                                                     onClick={() => toggleRisk(risk.id)}
-                                                    className="h-11 px-5 rounded-xl border-white/10 bg-white/5 hover:bg-white/10 text-white font-bold gap-2 transition-all active:scale-95"
+                                                    className="h-10 md:h-11 px-4 md:px-5 rounded-xl border-white/10 bg-white/5 hover:bg-white/10 text-white font-bold gap-2 transition-all active:scale-95 text-sm"
                                                 >
                                                     <Info className="w-4 h-4 text-blue-400" weight="duotone" />
                                                     Více informací
@@ -314,7 +299,7 @@ export default function RizikaPage() {
                                                 <Button
                                                     variant="outline"
                                                     onClick={() => handleSolutionClick(risk.id)}
-                                                    className="h-11 px-5 rounded-xl border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 text-emerald-400 font-bold gap-2 transition-all active:scale-95"
+                                                    className="h-10 md:h-11 px-4 md:px-5 rounded-xl border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 text-emerald-400 font-bold gap-2 transition-all active:scale-95 text-sm"
                                                 >
                                                     <Lightbulb className="w-4 h-4 text-emerald-400" weight="duotone" />
                                                     Řešení
@@ -326,7 +311,7 @@ export default function RizikaPage() {
                                     {/* Expanded Content */}
                                     {isExpanded && (
                                         <div className="border-t border-white/5 animate-in slide-in-from-top-2 duration-500 bg-white/[0.01]">
-                                            <div className="p-6 md:p-8 space-y-6">
+                                            <div className="p-4 md:p-8 space-y-5 md:space-y-6">
 
                                                 {/* ========== SECTION A: RISK ANALYSIS ========== */}
 
@@ -338,8 +323,8 @@ export default function RizikaPage() {
 
                                                 {/* Stat cards */}
                                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                                    <div className="rounded-2xl bg-white/[0.03] border border-white/5 p-5 text-center">
-                                                        <p className={cn("text-2xl font-bold mb-1", risk.accentText)}><CountUp from={0} to={risk.probability} duration={2} />%</p>
+                                                    <div className="rounded-2xl bg-white/[0.03] border border-white/5 p-3 md:p-5 text-center">
+                                                        <p className={cn("text-xl md:text-2xl font-bold mb-1", risk.accentText)}><CountUp from={0} to={risk.probability} duration={2} />%</p>
                                                         <p className="text-xs text-gray-500">Pravděpodobnost</p>
                                                         <div className="flex items-center justify-center gap-1 mt-1.5">
                                                             {risk.trendDirection === "up" && <ArrowUpRight className={cn("w-3 h-3", risk.accentText)} weight="duotone" />}
@@ -348,25 +333,25 @@ export default function RizikaPage() {
                                                             <span className="text-[10px] text-gray-600">{risk.trend}</span>
                                                         </div>
                                                     </div>
-                                                    <div className="rounded-2xl bg-white/[0.03] border border-white/5 p-5 text-center">
-                                                        <p className={cn("text-2xl font-bold mb-1", risk.accentText)}>{risk.impact}</p>
+                                                    <div className="rounded-2xl bg-white/[0.03] border border-white/5 p-3 md:p-5 text-center">
+                                                        <p className={cn("text-xl md:text-2xl font-bold mb-1", risk.accentText)}>{risk.impact}</p>
                                                         <p className="text-xs text-gray-500">Dopad</p>
                                                         <p className="text-[10px] text-gray-600 mt-1.5">Na operace firmy</p>
                                                     </div>
-                                                    <div className="rounded-2xl bg-white/[0.03] border border-white/5 p-5 text-center">
+                                                    <div className="rounded-2xl bg-white/[0.03] border border-white/5 p-3 md:p-5 text-center">
                                                         <div className="flex items-center justify-center gap-1.5 mb-1">
-                                                            {risk.trendDirection === "up" && <ArrowUpRight className={cn("w-5 h-5", risk.accentText)} weight="duotone" />}
-                                                            {risk.trendDirection === "down" && <ArrowDownRight className={cn("w-5 h-5", risk.accentText)} weight="duotone" />}
-                                                            {risk.trendDirection === "stable" && <ArrowRight className={cn("w-5 h-5", risk.accentText)} weight="duotone" />}
-                                                            <p className={cn("text-2xl font-bold", risk.accentText)}>{risk.trend}</p>
+                                                            {risk.trendDirection === "up" && <ArrowUpRight className={cn("w-4 h-4 md:w-5 md:h-5", risk.accentText)} weight="duotone" />}
+                                                            {risk.trendDirection === "down" && <ArrowDownRight className={cn("w-4 h-4 md:w-5 md:h-5", risk.accentText)} weight="duotone" />}
+                                                            {risk.trendDirection === "stable" && <ArrowRight className={cn("w-4 h-4 md:w-5 md:h-5", risk.accentText)} weight="duotone" />}
+                                                            <p className={cn("text-lg md:text-2xl font-bold", risk.accentText)}>{risk.trend}</p>
                                                         </div>
                                                         <p className="text-xs text-gray-500">Trend</p>
                                                     </div>
-                                                    <div className="rounded-2xl bg-white/[0.03] border border-white/5 p-5 text-center">
+                                                    <div className="rounded-2xl bg-white/[0.03] border border-white/5 p-3 md:p-5 text-center">
                                                         <div className="flex items-center justify-center gap-1.5 mb-1">
-                                                            <Clock className={cn("w-5 h-5", risk.accentText)} weight="duotone" />
+                                                            <Clock className={cn("w-4 h-4 md:w-5 md:h-5", risk.accentText)} weight="duotone" />
                                                         </div>
-                                                        <p className={cn("text-lg font-bold", risk.accentText)}>{risk.timeHorizon}</p>
+                                                        <p className={cn("text-base md:text-lg font-bold", risk.accentText)}>{risk.timeHorizon}</p>
                                                         <p className="text-xs text-gray-500">Časový horizont</p>
                                                     </div>
                                                 </div>
