@@ -2,8 +2,10 @@
 
 import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
+import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
-import { Eye, EyeSlash, WarningCircle, CircleNotch, Shield } from "@phosphor-icons/react"
+import { Eye, EyeSlash, WarningCircle, CircleNotch, Shield, ArrowLeft, ChartLineUp, Brain, ShieldCheck } from "@phosphor-icons/react"
 import StarBorder from "@/components/ui/StarBorder"
 import { isMultiFactorError, getResolverFromError, verifyTotpSignIn } from "@/lib/auth-2fa"
 import { MultiFactorResolver } from "firebase/auth"
@@ -127,88 +129,144 @@ export default function LoginPage() {
     }
 
     return (
-        <div
-            className="fixed inset-0 flex items-center justify-center overflow-auto p-4 sm:p-6"
-            style={{ background: '#04010e' }}
-        >
-            {/* Ambient glow — top center */}
-            <div
-                className="absolute pointer-events-none"
-                style={{
-                    top: '-20%',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    width: '800px',
-                    height: '600px',
-                    background: 'radial-gradient(ellipse at center, rgba(45, 29, 146, 0.15) 0%, rgba(29, 17, 120, 0.08) 40%, transparent 70%)',
-                    filter: 'blur(60px)',
-                }}
-            />
-
-            {/* Ambient glow — bottom right */}
-            <div
-                className="absolute pointer-events-none"
-                style={{
-                    bottom: '-10%',
-                    right: '-5%',
-                    width: '500px',
-                    height: '400px',
-                    background: 'radial-gradient(ellipse at center, rgba(124, 92, 252, 0.06) 0%, transparent 60%)',
-                    filter: 'blur(80px)',
-                }}
-            />
-
-            {/* Subtle dot grid texture */}
-            <div
-                className="absolute inset-0 pointer-events-none opacity-[0.03]"
-                style={{
-                    backgroundImage: 'radial-gradient(circle, rgba(124, 92, 252, 0.8) 1px, transparent 1px)',
-                    backgroundSize: '32px 32px',
-                }}
-            />
-
-            {/* Content — vertically centered as a unit */}
-            <div className="relative z-10 flex flex-col items-center w-full max-w-[400px]">
-
-                {/* Logo */}
-                <div className="flex flex-col items-center gap-3 mb-8">
-                    <img
-                        src="/k2m-logo-new.png"
-                        alt="K2M Analytics"
-                        className="h-8 sm:h-10 w-auto"
+        <div className="fixed inset-0 flex" style={{ background: '#04010e' }}>
+            {/* Left Side - Visual Panel (hidden on mobile) */}
+            <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 relative overflow-hidden">
+                {/* Background Image */}
+                <div className="absolute inset-0">
+                    <Image
+                        src="/images/login-visual.jpg"
+                        alt="Data Visualization"
+                        fill
+                        className="object-cover"
+                        priority
                     />
-                    <p className="text-[11px] tracking-[0.3em] uppercase font-medium text-white/20">
-                        Business Intelligence Platform
-                    </p>
+                    {/* Gradient overlays */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#04010e] via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#04010e]/80 via-transparent to-[#04010e]/40" />
                 </div>
 
-                {/* Card wrapper */}
-                <div className="relative w-full">
-                    {/* Card ambient glow */}
-                    <div
-                        className="absolute -inset-6 rounded-3xl pointer-events-none"
-                        style={{
-                            background: 'radial-gradient(ellipse at center, rgba(124, 92, 252, 0.08) 0%, transparent 70%)',
-                            filter: 'blur(30px)',
-                        }}
-                    />
-
-                    {/* Card */}
-                    <div
-                        className="relative rounded-2xl overflow-hidden"
-                        style={{
-                            background: 'linear-gradient(180deg, rgba(13, 10, 26, 0.95) 0%, rgba(7, 3, 18, 0.98) 100%)',
-                            border: '1px solid rgba(124, 92, 252, 0.08)',
-                            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(124, 92, 252, 0.03)',
-                        }}
+                {/* Content overlay */}
+                <div className="relative z-10 flex flex-col justify-between p-12 xl:p-16">
+                    {/* Back to home */}
+                    <Link 
+                        href="/"
+                        className="inline-flex items-center gap-2 text-white/40 hover:text-white/70 transition-colors w-fit"
                     >
-                        {/* Top accent line */}
+                        <ArrowLeft className="w-4 h-4" />
+                        <span className="text-sm">Zpet na uvod</span>
+                    </Link>
+
+                    {/* Main content */}
+                    <div className="space-y-8 max-w-lg">
+                        <h1 className="text-4xl xl:text-5xl font-bold leading-tight text-white">
+                            Odhalte potencial vasich dat
+                        </h1>
+                        <p className="text-lg text-white/50 leading-relaxed">
+                            K2M Analytics vam pomaha transformovat surova data na akcni obchodni rozhodnuti pomoci pokrocile umele inteligence.
+                        </p>
+
+                        {/* Feature highlights */}
+                        <div className="space-y-4 pt-4">
+                            {[
+                                { icon: ChartLineUp, text: "Realtime analyzy a reporty" },
+                                { icon: Brain, text: "AI-driven doporuceni" },
+                                { icon: ShieldCheck, text: "Enterprise-grade zabezpeceni" },
+                            ].map((item, index) => (
+                                <div key={index} className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
+                                        <item.icon className="w-5 h-5 text-[#9F84FD]" weight="duotone" />
+                                    </div>
+                                    <span className="text-white/70">{item.text}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Footer */}
+                    <p className="text-sm text-white/20">
+                        © 2026 K2M Analytics
+                    </p>
+                </div>
+            </div>
+
+            {/* Right Side - Login Form */}
+            <div className="w-full lg:w-1/2 xl:w-2/5 flex items-center justify-center overflow-auto p-6 sm:p-8">
+                {/* Ambient glow */}
+                <div
+                    className="absolute pointer-events-none lg:hidden"
+                    style={{
+                        top: '-20%',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        width: '800px',
+                        height: '600px',
+                        background: 'radial-gradient(ellipse at center, rgba(45, 29, 146, 0.15) 0%, rgba(29, 17, 120, 0.08) 40%, transparent 70%)',
+                        filter: 'blur(60px)',
+                    }}
+                />
+
+                {/* Subtle dot grid texture */}
+                <div
+                    className="absolute inset-0 pointer-events-none opacity-[0.03]"
+                    style={{
+                        backgroundImage: 'radial-gradient(circle, rgba(124, 92, 252, 0.8) 1px, transparent 1px)',
+                        backgroundSize: '32px 32px',
+                    }}
+                />
+
+                {/* Content */}
+                <div className="relative z-10 w-full max-w-[400px]">
+                    {/* Mobile: Back link */}
+                    <Link 
+                        href="/"
+                        className="lg:hidden inline-flex items-center gap-2 text-white/40 hover:text-white/70 transition-colors mb-8"
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                        <span className="text-sm">Zpet</span>
+                    </Link>
+
+                    {/* Logo */}
+                    <div className="flex flex-col items-center gap-3 mb-8">
+                        <Image
+                            src="/k2m-logo-new.png"
+                            alt="K2M Analytics"
+                            width={160}
+                            height={40}
+                            className="h-8 sm:h-10 w-auto"
+                        />
+                        <p className="text-[11px] tracking-[0.3em] uppercase font-medium text-white/20">
+                            Business Intelligence Platform
+                        </p>
+                    </div>
+
+                    {/* Card wrapper */}
+                    <div className="relative w-full">
+                        {/* Card ambient glow */}
                         <div
-                            className="h-px w-full"
+                            className="absolute -inset-6 rounded-3xl pointer-events-none"
                             style={{
-                                background: 'linear-gradient(90deg, transparent 10%, rgba(124, 92, 252, 0.25) 40%, rgba(124, 92, 252, 0.4) 50%, rgba(124, 92, 252, 0.25) 60%, transparent 90%)',
+                                background: 'radial-gradient(ellipse at center, rgba(124, 92, 252, 0.08) 0%, transparent 70%)',
+                                filter: 'blur(30px)',
                             }}
                         />
+
+                        {/* Card */}
+                        <div
+                            className="relative rounded-2xl overflow-hidden"
+                            style={{
+                                background: 'linear-gradient(180deg, rgba(13, 10, 26, 0.95) 0%, rgba(7, 3, 18, 0.98) 100%)',
+                                border: '1px solid rgba(124, 92, 252, 0.08)',
+                                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(124, 92, 252, 0.03)',
+                            }}
+                        >
+                            {/* Top accent line */}
+                            <div
+                                className="h-px w-full"
+                                style={{
+                                    background: 'linear-gradient(90deg, transparent 10%, rgba(124, 92, 252, 0.25) 40%, rgba(124, 92, 252, 0.4) 50%, rgba(124, 92, 252, 0.25) 60%, transparent 90%)',
+                                }}
+                            />
 
                         <div className="p-6 sm:p-8">
                             {/* Header */}
@@ -372,12 +430,12 @@ export default function LoginPage() {
                             </p>
                         </div>
                     </div>
-                </div>
 
-                {/* Copyright */}
-                <p className="text-xs text-white/10 mt-8">
-                    © 2026 K2M Analytics
-                </p>
+                    {/* Mobile Copyright */}
+                    <p className="lg:hidden text-center text-xs text-white/10 mt-8">
+                        © 2026 K2M Analytics
+                    </p>
+                </div>
             </div>
 
             {/* 2FA Enrollment Modal - forced after login if user has no 2FA */}
